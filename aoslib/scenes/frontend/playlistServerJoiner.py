@@ -1,5 +1,4 @@
 import urllib
-from twisted.web.client import getPage
 from twisted.internet import reactor
 from shared.steam import SteamGetInternetServerList, SteamGetSessionTicket, SteamGetAllLobbyData
 import json

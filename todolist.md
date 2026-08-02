@@ -145,8 +145,12 @@ than porting it onto pyglet 2.x.
 - [ ] Replace `deferToThread` in `aoslib/web.py` and `aoslib/scoremanager.py`
 - [ ] Replace the Deferred wrapper around local file I/O in `aoslib/favourite.py`
 - [ ] Replace `getPage` in `customServerJoiner.py` with `revival_http`
-- [ ] Remove the dead `getPage` import in `playlistServerJoiner.py`
+- [x] Remove the dead `getPage` import in `playlistServerJoiner.py`
 - [ ] Replace `reactor.callLater` with `pyglet.clock.schedule_once`
+- [ ] `playlistServerJoiner.py` still imports `reactor` without using it.
+      Importing it *installs* the default reactor, which conflicts with
+      `pygletreactor.install()` if this module is imported first — check the
+      ordering as part of the reactor removal rather than in isolation
 - [ ] Replace `twisted.python.log` with stdlib `logging`
 - [ ] Delete `aoslib/pygletreactor.py` and its PyInstaller hook workaround
 - [ ] Drop Twisted and zope.interface from `requirements.txt`
