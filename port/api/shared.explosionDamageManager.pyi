@@ -5582,6 +5582,7 @@ ZONE_ICON_VIP: int  # 5
 ZOOMED_CROSSHAIR: int  # 1
 Z_ABOVE_WATERPLANE: int  # 238
 json: module  # <module 'json' from 'C:\Python27-x86\lib\json\__init__.pyc'>
+print_function: instance  # _Feature((2, 6, 0, 'alpha', 2), (3, 0, 0, 'alpha', 0), 65536)
 sys: module  # <module 'sys' (built-in)>
 ugc_zone_key: int  # 18
 ugc_zone_size: tuple  # (-20, 20, -20, 20, -36, 4)

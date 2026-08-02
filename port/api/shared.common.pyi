@@ -5584,6 +5584,7 @@ Z_ABOVE_WATERPLANE: int  # 238
 json: module  # <module 'json' from 'C:\Python27-x86\lib\json\__init__.pyc'>
 math: module  # <module 'math' (built-in)>
 os: module  # <module 'os' from 'C:\Python27-x86\lib\os.pyc'>
+print_function: instance  # _Feature((2, 6, 0, 'alpha', 2), (3, 0, 0, 'alpha', 0), 65536)
 random: module  # <module 'random' from 'C:\Python27-x86\lib\random.pyc'>
 sys: module  # <module 'sys' (built-in)>
 ugc_zone_key: int  # 18

@@ -28,15 +28,15 @@ number that reflects what a module actually implements.
 | `aoslib.scenes.main.gameScene` | crashed | 0 | 0 |
 | `aoslib.scenes.main.player` | crashed | 0 | 0 |
 | [`aoslib.ugc_data`](aoslib.ugc_data.pyi) | package | 502 | 33 |
-| [`aoslib.vxl`](aoslib.vxl.pyi) | package | 5600 | 16 |
-| [`aoslib.world`](aoslib.world.pyi) | package | 5598 | 16 |
+| [`aoslib.vxl`](aoslib.vxl.pyi) | package | 5601 | 16 |
+| [`aoslib.world`](aoslib.world.pyi) | package | 5599 | 16 |
 | [`shared.bytes`](shared.bytes.pyi) | package | 3 | 3 |
-| [`shared.common`](shared.common.pyi) | package | 5632 | 5632 |
-| [`shared.explosionDamageManager`](shared.explosionDamageManager.pyi) | package | 5588 | 5 |
+| [`shared.common`](shared.common.pyi) | package | 5633 | 5633 |
+| [`shared.explosionDamageManager`](shared.explosionDamageManager.pyi) | package | 5589 | 5 |
 | [`shared.glm`](shared.glm.pyi) | package | 4 | 3 |
 | [`shared.lzf`](shared.lzf.pyi) | package | 3 | 3 |
-| [`shared.packet`](shared.packet.pyi) | package | 5722 | 139 |
-| [`shared.shrapnelManager`](shared.shrapnelManager.pyi) | package | 5584 | 2 |
+| [`shared.packet`](shared.packet.pyi) | package | 5723 | 139 |
+| [`shared.shrapnelManager`](shared.shrapnelManager.pyi) | package | 5585 | 2 |
 
 ## Modules that abort the interpreter
 

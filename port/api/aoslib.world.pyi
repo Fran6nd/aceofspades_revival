@@ -5583,6 +5583,7 @@ ZOOMED_CROSSHAIR: int  # 1
 Z_ABOVE_WATERPLANE: int  # 238
 atexit: module  # <module 'atexit' from 'C:\Python27-x86\lib\atexit.pyc'>
 json: module  # <module 'json' from 'C:\Python27-x86\lib\json\__init__.pyc'>
+print_function: instance  # _Feature((2, 6, 0, 'alpha', 2), (3, 0, 0, 'alpha', 0), 65536)
 sys: module  # <module 'sys' (built-in)>
 time: module  # <module 'time' (built-in)>
 ugc_zone_key: int  # 18
