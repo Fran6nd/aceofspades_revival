@@ -4,7 +4,7 @@ Issues found while working on the cross-platform port. Kept here so that
 findings made while investigating one thing are not lost when the work moves
 on. Each entry cites where it lives and how it was confirmed.
 
-Status: `FIXED` · `OPEN` · `WONTFIX`
+Status: `FIXED` · `RESOLVED` · `OPEN` · `WONTFIX`
 
 ---
 
@@ -116,7 +116,7 @@ crash-proof would mean a lock file or similar for very little gain.
 
 ## Client source
 
-### 9. `shared.playerInteractions` is referenced but does not exist — OPEN
+### 9. `shared.playerInteractions` is referenced but does not exist — RESOLVED
 
 `shared/explosionDamageManager.pyd`
 
@@ -124,11 +124,12 @@ The compiled module references `shared.playerInteractions`. No such module
 exists anywhere in the repository. Of the 43 distinct `aoslib.*` / `shared.*`
 names referenced across all native modules, this is the only one absent.
 
-Not yet known whether it is a live dependency on a code path that would crash,
-or a dead reference left over from a build that once had it. Cython pools all
-string constants, so its presence in the binary is not proof of an import.
-Resolve during the Phase 1 oracle run, which will show whether importing
-`explosionDamageManager` actually fails.
+Resolved by the first successful introspection run: `explosionDamageManager`
+imports cleanly under 32-bit Python 2.7, and `playerInteractions` appears
+nowhere in the captured API of any module.
+
+It is a dead reference — a pooled Cython string constant left over from a build
+that once had the module — not a live import. No action needed.
 
 ### 10. Two client modules cannot be parsed by Python 3 — OPEN
 

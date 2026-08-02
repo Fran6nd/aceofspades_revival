@@ -172,15 +172,30 @@ def render_index(report: dict) -> str:
         f"- interpreter: `{report.get('python_version', '?').splitlines()[0]}`",
         f"- pointer width: {report.get('pointer_bits', '?')}-bit",
         '',
-        '| module | status | members |',
-        '| --- | --- | --- |',
+        'Most modules star-import a large shared constants namespace, so the',
+        'raw member count is dominated by names the module merely re-exports.',
+        '"own" counts those not also present in `shared.common`, and is the',
+        'number that reflects what a module actually implements.',
+        '',
+        '| module | status | members | own |',
+        '| --- | --- | --- | --- |',
     ]
+
+    # The namespace every module re-exports, used to separate what a module
+    # implements from what it inherits by star import.
+    shared_namespace: set[str] = set()
+    for entry in modules:
+        if entry.get('module') == 'shared.common':
+            shared_namespace = set((entry.get('api') or {}).get('members') or {})
+            break
+
     for entry in sorted(modules, key=lambda item: item.get('module', '')):
         name = entry.get('module', '?')
         status = entry.get('import', '?')
-        count = len((entry.get('api') or {}).get('members') or {})
+        members = set((entry.get('api') or {}).get('members') or {})
+        own = members - shared_namespace if name != 'shared.common' else members
         link = f'[`{name}`]({name}.pyi)' if status not in ('failed', 'crashed') else f'`{name}`'
-        lines.append(f'| {link} | {status} | {count} |')
+        lines.append(f'| {link} | {status} | {len(members)} | {len(own)} |')
 
     crashed = [m['module'] for m in modules if m.get('import') == 'crashed']
     if crashed:

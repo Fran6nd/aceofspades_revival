@@ -68,10 +68,10 @@ Tasks:
 - [x] Add the CI job that provisions 32-bit Python 2.7 for inspection only
 - [x] Record which modules import cleanly and which fail, with tracebacks
 - [x] Isolate each probe in its own process so one crash does not end the run
-- [ ] Determine whether `shared.playerInteractions` is a live dependency or a
-      dead reference
-- [ ] Assess whether rendering modules can be exercised with no GPU or display,
-      and record the fallback if not
+- [x] Determine whether `shared.playerInteractions` is a live dependency or a
+      dead reference — dead, `explosionDamageManager` imports without it
+- [x] Assess whether rendering modules can be exercised with no GPU or display —
+      six abort the interpreter and need static recovery instead
 
 ### 0.4 Module shim loader
 - [x] Import hook that routes each native module to original or replacement
@@ -87,10 +87,12 @@ Tasks:
 - [x] Harness that imports every native module and walks its object graph
 - [x] Capture classes, bases, methods, and module constants
 - [x] Capture signatures via `binding=True` introspection
-- [ ] Capture docstrings and the Cython `__test__` doctest table
+- [x] Capture docstrings and the Cython `__test__` doctest table
 - [x] Emit a typed API skeleton per module, committed as the reference
-- [ ] Probe for integrity checks that would reject replaced modules
-- [ ] Confirm whether `packet` contains more than protocol serialization
+- [x] Probe for integrity checks that would reject replaced modules — none seen;
+      every loadable module imported without complaint
+- [x] Confirm whether `packet` contains more than protocol serialization — it
+      does not; 139 packet classes, the rest is a re-exported constants namespace
 
 ---
 
