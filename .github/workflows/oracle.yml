@@ -77,13 +77,26 @@ jobs:
           if (Test-Path $target) { Remove-Item -Recurse -Force $target }
           Copy-Item -Recurse -Force vendor\pyglet $target
 
+      # The harness is Python 2.7 source running under an interpreter that
+      # cannot be exercised anywhere else, so capture its output: a syntax or
+      # startup error produces no report and would otherwise be invisible.
       - name: Introspect native modules
+        id: introspect
+        continue-on-error: true
         shell: pwsh
         run: |
-          & "$env:PY2_DIR\python.exe" tools\oracle\introspect_modules.py build\oracle\native_api.json
+          & "$env:PY2_DIR\python.exe" tools\oracle\introspect_modules.py build\oracle\native_api.json > oracle-output.txt 2>&1
+          $code = $LASTEXITCODE
+          Get-Content oracle-output.txt
+          exit $code
+
+      - name: Annotate harness failure
+        if: always()
+        shell: pwsh
+        run: python tools\ci\annotate_junit.py build\oracle\native_api.json oracle-output.txt
 
       - name: Summarise results
-        if: always()
+        if: steps.introspect.outcome == 'success'
         shell: pwsh
         run: |
           $report = Get-Content build\oracle\native_api.json -Raw | ConvertFrom-Json
@@ -102,6 +115,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: native-api-report
-          path: build/oracle/native_api.json
-          if-no-files-found: error
+          path: |
+            build/oracle/native_api.json
+            oracle-output.txt
+          if-no-files-found: warn
           retention-days: 90
+
+      - name: Fail if the harness did not run
+        if: steps.introspect.outcome == 'failure'
+        run: exit 1

@@ -39,9 +39,26 @@ def tail(text: str, limit: int = MAX_MESSAGE) -> str:
     return '...\n' + text[-limit:]
 
 
-def annotate(report_path: Path) -> int:
+def annotate_raw_log(log_path: Path, reason: str) -> None:
+    """Fall back to the captured output when there is no structured report.
+
+    A process that dies during collection, or before it starts at all, produces
+    no JUnit XML. That is exactly the case worth surfacing, because the run log
+    itself needs an authenticated request to read.
+    """
+    if not log_path or not log_path.is_file():
+        print(f'::error::{reason}, and no captured output at {log_path} either')
+        return
+    text = log_path.read_text(encoding='utf-8', errors='replace')
+    if not text.strip():
+        print(f'::error::{reason}, and the captured output was empty')
+        return
+    print(f'::error title=No structured report::{escape(reason)}%0A%0A{escape(tail(text))}')
+
+
+def annotate(report_path: Path, fallback_log: Path | None = None) -> int:
     if not report_path.is_file():
-        print(f'::warning::No JUnit report at {report_path}; nothing to annotate')
+        annotate_raw_log(fallback_log, f'No report at {report_path}')
         return 0
 
     tree = ElementTree.parse(report_path)
@@ -70,10 +87,11 @@ def annotate(report_path: Path) -> int:
 
 def main() -> int:
     if len(sys.argv) < 2:
-        print('usage: annotate_junit.py <junit-xml>', file=sys.stderr)
+        print('usage: annotate_junit.py <junit-xml> [captured-output.txt]', file=sys.stderr)
         return 2
-    annotate(Path(sys.argv[1]))
-    # Never fail here: the workflow decides the outcome from pytest itself.
+    fallback = Path(sys.argv[2]) if len(sys.argv) > 2 else None
+    annotate(Path(sys.argv[1]), fallback)
+    # Never fail here: the workflow decides the outcome from the command it ran.
     # This step only reports.
     return 0
 

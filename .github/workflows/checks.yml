@@ -49,11 +49,18 @@ jobs:
       - name: Verify tkinter is available
         run: python -c "import tkinter; print('tkinter', tkinter.TkVersion)"
 
+      # Output is captured to a file as well as shown, so that a run which dies
+      # before writing a JUnit report can still be annotated. Redirection is
+      # used rather than a pipe because the shells differ across these runners.
       - name: Run tests
         id: pytest-windows
         if: runner.os == 'Windows'
         continue-on-error: true
-        run: python -m pytest tests/ -v --junitxml=test-results.xml
+        run: |
+          python -m pytest tests/ -v --junitxml=test-results.xml > pytest-output.txt 2>&1
+          $code = $LASTEXITCODE
+          Get-Content pytest-output.txt
+          exit $code
 
       # Two tests assert Windows path semantics (a drive-letter path resolved
       # through os.path.abspath) and cannot hold where os.path is posixpath.
@@ -64,15 +71,22 @@ jobs:
         if: runner.os != 'Windows'
         continue-on-error: true
         run: |
+          set +e
           python -m pytest tests/ -v --junitxml=test-results.xml \
             --deselect tests/test_unicode_appdata_paths.py::test_frozen_updater_uses_wide_executable_path \
-            --deselect tests/test_unicode_appdata_paths.py::test_frozen_launcher_uses_wide_executable_path
+            --deselect tests/test_unicode_appdata_paths.py::test_frozen_launcher_uses_wide_executable_path \
+            > pytest-output.txt 2>&1
+          code=$?
+          cat pytest-output.txt
+          exit $code
 
       # Run logs need an authenticated request, but annotations do not. Turning
       # failures into annotations keeps a red build diagnosable from the API.
+      # The captured output is the fallback when there is no JUnit report at
+      # all, which is what happens when the run dies during collection.
       - name: Annotate failures
         if: always()
-        run: python tools/ci/annotate_junit.py test-results.xml
+        run: python tools/ci/annotate_junit.py test-results.xml pytest-output.txt
 
       - name: Publish test report
         if: always()

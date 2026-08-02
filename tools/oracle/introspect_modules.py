@@ -245,9 +245,18 @@ def probe(name):
     return result
 
 
+def write_report(report, destination):
+    directory = os.path.dirname(os.path.abspath(destination))
+    if directory and not os.path.isdir(directory):
+        os.makedirs(directory)
+    with open(destination, 'w') as handle:
+        json.dump(report, handle, indent=2, sort_keys=True)
+
+
 def main():
     prepare_environment()
 
+    destination = sys.argv[1] if len(sys.argv) > 1 else 'native_api.json'
     report = {
         'python_version': sys.version,
         'platform': sys.platform,
@@ -257,16 +266,20 @@ def main():
 
     for name in MODULES:
         print('probing %s' % name)
+        # Record the attempt before making it. A module that initialises a GL
+        # context can abort the process outright rather than raise, which no
+        # amount of exception handling would catch, so the report is flushed
+        # after every step and carries the name of whatever was in flight.
+        report['in_flight'] = name
+        write_report(report, destination)
+
         entry = probe(name)
         report['modules'].append(entry)
+        report.pop('in_flight', None)
+        write_report(report, destination)
         print('  -> %s' % entry['import'])
 
-    destination = sys.argv[1] if len(sys.argv) > 1 else 'native_api.json'
-    directory = os.path.dirname(os.path.abspath(destination))
-    if not os.path.isdir(directory):
-        os.makedirs(directory)
-    with open(destination, 'w') as handle:
-        json.dump(report, handle, indent=2, sort_keys=True)
+    write_report(report, destination)
 
     succeeded = [m for m in report['modules'] if m['import'] != 'failed']
     print('')
