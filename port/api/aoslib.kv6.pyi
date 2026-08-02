@@ -50,7 +50,7 @@ class KV6(object):
 class _memoryviewslice(memoryview):
     T: getset_descriptor  # <attribute 'T' of 'aoslib.kv6.memoryview' objects>
     __init__: wrapper_descriptor  # 
-    __pyx_getbuffer: PyCapsule  # <capsule object "getbuffer(obj, view, flags)" at 0x03601758>
+    __pyx_getbuffer: PyCapsule  # <capsule object "getbuffer(obj, view, flags)" at 0x02FD1758>
     base: getset_descriptor  # <attribute 'base' of 'aoslib.kv6._memoryviewslice' objects>
     copy: method_descriptor  # 
     copy_fortran: method_descriptor  # 
@@ -67,14 +67,14 @@ class _memoryviewslice(memoryview):
 
 class array(object):
     __init__: wrapper_descriptor  # 
-    __pyx_getbuffer: PyCapsule  # <capsule object "getbuffer(obj, view, flags)" at 0x03601728>
+    __pyx_getbuffer: PyCapsule  # <capsule object "getbuffer(obj, view, flags)" at 0x02FD1728>
     memview: getset_descriptor  # <attribute 'memview' of 'aoslib.kv6.array' objects>
 
 
 class memoryview(object):
     T: getset_descriptor  # <attribute 'T' of 'aoslib.kv6.memoryview' objects>
     __init__: wrapper_descriptor  # 
-    __pyx_getbuffer: PyCapsule  # <capsule object "getbuffer(obj, view, flags)" at 0x03601740>
+    __pyx_getbuffer: PyCapsule  # <capsule object "getbuffer(obj, view, flags)" at 0x02FD1740>
     base: getset_descriptor  # <attribute 'base' of 'aoslib.kv6.memoryview' objects>
     copy: method_descriptor  # 
     copy_fortran: method_descriptor  # 

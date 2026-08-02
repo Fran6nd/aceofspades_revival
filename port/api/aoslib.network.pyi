@@ -27,9 +27,9 @@ copy: module  # <module 'copy' from 'C:\Python27-x86\lib\copy.pyc'>
 enet: module  # <module 'enet' from 'D:\a\aceofspades_revival\aceofspades_revival\enet.pyd'>
 json: module  # <module 'json' from 'C:\Python27-x86\lib\json\__init__.pyc'>
 lzf: module  # <module 'shared.lzf' from 'D:\a\aceofspades_revival\aceofspades_revival\shared\lzf.pyd'>
-map_data_validation: MapDataValidation  # <shared.packet.MapDataValidation object at 0x035B8A90>
+map_data_validation: MapDataValidation  # <shared.packet.MapDataValidation object at 0x030D8A90>
 os: module  # <module 'os' from 'C:\Python27-x86\lib\os.pyc'>
-pack_response: PackResponse  # <shared.packet.PackResponse object at 0x035B8A80>
+pack_response: PackResponse  # <shared.packet.PackResponse object at 0x030D8A80>
 packets: module  # <module 'shared.packet' from 'D:\a\aceofspades_revival\aceofspades_revival\shared\packet.pyd'>
 threading: module  # <module 'threading' from 'C:\Python27-x86\lib\threading.pyc'>
 time: module  # <module 'time' (built-in)>
@@ -212,7 +212,7 @@ class NetworkThread(Thread):
         ...
     def __init__(*args, **kwargs):  # signature not introspectable
         ...
-    _block: property  # <property object at 0x03955810>
+    _block: property  # <property object at 0x031B5810>
     def _note(self, format, *args):
         ...
     def _reset_internal_locks(self):
@@ -221,10 +221,10 @@ class NetworkThread(Thread):
         ...
     def _set_ident(self):
         ...
-    daemon: property  # <property object at 0x039558D0>
+    daemon: property  # <property object at 0x031B58D0>
     def getName(self):
         ...
-    ident: property  # <property object at 0x03955840>
+    ident: property  # <property object at 0x031B5840>
     def isAlive(self):
         """Return whether the thread is alive.
         
@@ -267,7 +267,7 @@ class NetworkThread(Thread):
                 exception.
         """
         ...
-    name: property  # <property object at 0x03955870>
+    name: property  # <property object at 0x031B5870>
     def run(*args, **kwargs):  # signature not introspectable
         ...
     def setDaemon(self, daemonic):
