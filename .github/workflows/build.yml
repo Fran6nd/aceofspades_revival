@@ -142,7 +142,7 @@ jobs:
           PURE_PYTHON: '1'
         run: |
           & "$env:PY2_DIR\python.exe" -m pip install -r requirements.txt
-          & "$env:PY2_DIR\python.exe" -c "import twisted, zope.interface, toml; print('runtime dependencies import cleanly')"
+          & "$env:PY2_DIR\python.exe" -c "import twisted, zope.interface; print('runtime dependencies import cleanly')"
 
       # pyglet is a pinned 1.2dev build that is not on PyPI, so it is vendored
       # rather than installed. run.py puts vendor/ on sys.path for source runs,

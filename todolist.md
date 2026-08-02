@@ -152,10 +152,46 @@ than porting it onto pyglet 2.x.
 - [ ] Drop Twisted and zope.interface from `requirements.txt`
 
 ### 3.4 pyglet migration
-- [ ] Scope the move from the vendored 1.2dev bytecode to a maintained pyglet
-- [ ] Map every pyglet API the client uses to its modern equivalent
-- [ ] Port windowing, GL context handling, and batched graphics
-- [ ] Replace the raw-mouse compatibility patch with a supported input path
+
+The vendored `vendor/pyglet` is pyglet **1.2dev** as Python 2.7 bytecode with no
+source, so moving off it is mandatory. The target is **1.5.27, not 2.x** — these
+are separate projects and must not be conflated.
+
+1.5.27 keeps `glext_arb.py` and `glu.py`, so all 863 GL references resolve
+unchanged, and the client never uses `pyglet.text`, `pyglet.font`,
+`pyglet.media` or `Batch` (font is native FTGL, audio is direct ctypes OpenAL).
+That makes it a small hop.
+
+It is also what makes native macOS possible at all: pyglet 1.5.27's Cocoa
+backend requests a legacy OpenGL 2.1 profile, where the existing fixed-function
+renderer and `#version 110` shaders run as-is. pyglet 2.0's Cocoa backend gives
+a Core 3.2/4.1 profile, where fixed function does not exist.
+
+- [ ] Move to pyglet 1.5.27 and drop the vendored bytecode
+- [ ] Replace `pyglet.window.get_platform()` with `pyglet.canvas.get_display()`
+- [ ] Fix `set_exclusive_keyboard()` being called before `Window.__init__`
+- [ ] Delete `aoslib/pyglet_win32_raw_mouse.py` and its call site — pyglet has
+      handled raw input natively since 1.5, and the patch already self-disables
+      on anything other than 1.2. Must happen *with* the version bump, not
+      before: on the current 1.2dev it is live and removing it early would lose
+      raw mouse input
+- [ ] Re-verify the `EventLoop` subclass and the `_event_stack` reordering in
+      `aoslib/parachute_key_patch.py`
+- [ ] Confirm `window.invalid` still paces frames under 1.5
+
+### 3.4b pyglet 2.x — deferred, tracked separately
+
+Not part of this migration. Roughly 12–26 person-weeks, and it is a renderer
+rewrite rather than a port: 610 fixed-function call sites across 79 files, 51
+shader sources at `#version 110` using built-ins deleted in GLSL 330, ARB
+assembly programs with no core equivalent, and GL selection-buffer picking.
+
+Worst failure mode to remember: `Texture.blit()` stops honouring the modelview
+matrix and current colour, so 145 blit sites and every Sprite still compile and
+run while drawing at the wrong position, scale and tint, with no exception.
+
+Best merged with the `port/` reimplementation of `draw`, `mesh` and `kv6`, since
+those must become modern GL regardless and doing both twice would be waste.
 
 ### 3.5 Validation
 - [ ] Extend the test suite to cover converted modules
