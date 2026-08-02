@@ -30,6 +30,13 @@ jobs:
         with:
           fetch-depth: 1
 
+      # Python 3 for the reporting helpers below. Unrelated to the 32-bit
+      # Python 2.7 that actually loads the modules.
+      - name: Set up Python 3
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Cache Python 2.7 installer
         id: cache-py2-installer
         uses: actions/cache@v4
@@ -90,25 +97,18 @@ jobs:
           Get-Content oracle-output.txt
           exit $code
 
+      # Only on failure: the report is JSON, not JUnit, so this is purely the
+      # raw-output path for a harness that died before producing anything.
       - name: Annotate harness failure
-        if: always()
+        if: steps.introspect.outcome == 'failure'
         shell: pwsh
         run: python tools\ci\annotate_junit.py build\oracle\native_api.json oracle-output.txt
 
+      # Emits the per-module outcome as annotations, which are readable from
+      # the API without a token, unlike the run log or the artifact.
       - name: Summarise results
-        if: steps.introspect.outcome == 'success'
-        shell: pwsh
-        run: |
-          $report = Get-Content build\oracle\native_api.json -Raw | ConvertFrom-Json
-          "## Native module introspection" | Out-File -Append $env:GITHUB_STEP_SUMMARY
-          "" | Out-File -Append $env:GITHUB_STEP_SUMMARY
-          "| module | import | members |" | Out-File -Append $env:GITHUB_STEP_SUMMARY
-          "| --- | --- | --- |" | Out-File -Append $env:GITHUB_STEP_SUMMARY
-          foreach ($entry in $report.modules) {
-            $count = 0
-            if ($entry.api) { $count = ($entry.api.members | Get-Member -MemberType NoteProperty).Count }
-            "| $($entry.module) | $($entry.import) | $count |" | Out-File -Append $env:GITHUB_STEP_SUMMARY
-          }
+        if: always()
+        run: python tools/ci/report_oracle.py build/oracle/native_api.json
 
       - name: Upload API report
         if: always()

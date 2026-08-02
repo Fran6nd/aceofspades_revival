@@ -61,7 +61,15 @@ def annotate(report_path: Path, fallback_log: Path | None = None) -> int:
         annotate_raw_log(fallback_log, f'No report at {report_path}')
         return 0
 
-    tree = ElementTree.parse(report_path)
+    try:
+        tree = ElementTree.parse(report_path)
+    except ElementTree.ParseError as error:
+        # The file exists but is not JUnit XML. Reporting the captured output is
+        # far more useful here than propagating a parse error about a file that
+        # was never the point.
+        annotate_raw_log(fallback_log, f'{report_path} is not a JUnit report ({error})')
+        return 0
+
     failures = 0
 
     for testcase in tree.iter('testcase'):

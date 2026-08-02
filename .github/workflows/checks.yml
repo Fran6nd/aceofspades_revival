@@ -25,6 +25,17 @@ jobs:
       matrix:
         os: [ubuntu-24.04, windows-2022, macos-14]
 
+    # The repository root ships 32-bit Python 2.7 stdlib extension modules
+    # (_socket.pyd and friends) left over from the original game directory. On
+    # Windows `.pyd` is an importable suffix, so with the working directory on
+    # sys.path a 64-bit Python 3 loads those instead of its own standard
+    # library and dies with "not a valid Win32 application". PYTHONSAFEPATH
+    # stops the working directory being prepended, protecting pytest's own
+    # import chain. tests/conftest.py protects the test modules, which put the
+    # repository root back on sys.path deliberately.
+    env:
+      PYTHONSAFEPATH: '1'
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
