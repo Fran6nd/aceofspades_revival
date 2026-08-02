@@ -155,3 +155,57 @@ It passes today, but any reformatting of those two files, or the introduction
 of a Python 2-only construct inside an extracted method, breaks six tests in a
 way that has nothing to do with the change that caused it. The workaround
 should be deleted once defect 10 is fixed and the modules import normally.
+
+---
+
+## Tooling and CI
+
+### 12. Repo-root `.pyd` files shadow the standard library on Windows — FIXED
+
+`_socket.pyd`, `_hashlib.pyd`, `bz2.pyd`, `pyexpat.pyd`, `select.pyd`,
+`unicodedata.pyd`, `_win32sysloader.pyd`
+
+Seven 32-bit Python 2.7 stdlib extension modules sit in the repository root,
+left over from the original game directory. On Windows `.pyd` is a recognised
+import suffix, so the moment the repository root is on `sys.path` a 64-bit
+Python 3 loads these instead of its own standard library:
+
+```
+ImportError: DLL load failed while importing _socket:
+%1 is not a valid Win32 application.
+```
+
+This broke the entire Windows test job before a single test ran — pytest's own
+import chain reaches `socket` through `pygments` and `importlib.metadata`. It
+does not reproduce on Linux or macOS, where `.pyd` is not an importable
+suffix, which is why it only appeared once tests ran on Windows.
+
+It affects any Python 3 tooling invoked from the repository root on Windows,
+not just the tests.
+
+Fixed in two layers: `PYTHONSAFEPATH=1` in the test workflow stops the working
+directory being prepended for pytest's own imports, and `tests/conftest.py`
+pre-imports the affected stdlib modules before any test module puts the
+repository root back on `sys.path` deliberately.
+
+The root cause remains: these seven files are not referenced by
+`EXTRA_RUNTIME_FILES` and are not staged into a release, since PyInstaller
+bundles the stdlib from the build interpreter. They appear to be dead weight
+and deleting them would remove the hazard entirely — left in place for now
+because the README treats the original runtime layout as deliberate, so that
+call belongs to the maintainer.
+
+### 13. Oracle annotator crashed on a non-XML report — FIXED
+
+`tools/ci/annotate_junit.py`
+
+The introspection job passed its JSON report to the JUnit annotator, whose
+`ElementTree.parse` raised `ParseError`. The exception was uncaught, so the
+step exited 1 and failed the job — even though the harness itself had
+succeeded and produced a complete 345 KB report.
+
+A green job reported as red is worse than a plain failure, because the useful
+result was already sitting in the artifact.
+
+Fixed by catching the parse error and falling back to annotating the captured
+output, and by restricting that step to actual harness failures.
