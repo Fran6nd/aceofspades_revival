@@ -907,7 +907,7 @@ def write_stage_metadata(stage_dir: Path, version: str) -> None:
     )
 
 
-def stage_release(runtime_dir: Path, version: str) -> Path:
+def stage_release(runtime_dir: Path, version: str, skip_server: bool = False) -> Path:
     stage_dir = RELEASES_ROOT / release_name(version)
     if stage_dir.exists():
         shutil.rmtree(stage_dir)
@@ -928,7 +928,12 @@ def stage_release(runtime_dir: Path, version: str) -> Path:
     icon_source = Path(resolve_icon_source())
     if icon_source.exists():
         shutil.copy2(icon_source, stage_dir / 'game.ico')
-    copy_server_bundle(stage_dir)
+    if skip_server:
+        # Announce loudly: the staged tree looks complete but has no server/,
+        # so local match hosting is silently unavailable in the result.
+        print('Skipping BattleSpades server staging; local match hosting will be unavailable.')
+    else:
+        copy_server_bundle(stage_dir)
     ensure_debug_pkg(stage_dir)
     write_stage_metadata(stage_dir, version)
     return stage_dir
@@ -1004,6 +1009,16 @@ def write_artifact_checksums(version: str, artifacts: list[Path]) -> Path:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description='Build legacy AoS Revival releases with aos.exe + aos.pkg')
     parser.add_argument('--version', required=True)
+    parser.add_argument(
+        '--skip-server',
+        action='store_true',
+        help=(
+            'Stage the release without the bundled BattleSpades server. The '
+            'client builds and runs, but Play / Tutorial / UGC cannot start a '
+            'local match. Intended for environments that do not have the '
+            'BattleSpades repo checked out, such as automated builds.'
+        ),
+    )
     return parser.parse_args()
 
 
@@ -1026,7 +1041,7 @@ def main() -> int:
 
     ensure_toolchain()
     runtime_dir = build_legacy_runtime()
-    stage_dir = stage_release(runtime_dir, args.version)
+    stage_dir = stage_release(runtime_dir, args.version, skip_server=args.skip_server)
     full_artifact = zip_directory(stage_dir, ARTIFACTS_ROOT / f'{release_name(args.version)}-full.zip')
     solid_artifact = build_solid_artifact(
         stage_dir,

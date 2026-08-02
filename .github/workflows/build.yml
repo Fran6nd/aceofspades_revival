@@ -1,0 +1,190 @@
+name: Build
+
+# Release packaging.
+#
+# Windows is the only platform that can currently produce a client build: the
+# game's native modules are 32-bit Windows extensions, so the freeze step needs
+# a matching 32-bit Python 2.7. The macOS and Linux entries in the build matrix
+# are declared but disabled, and are switched on as the native module port
+# lands. See todolist.md.
+
+on:
+  push:
+    branches: [master]
+    tags: ['v*']
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version string for the release artifacts'
+        required: false
+        type: string
+
+env:
+  PY2_VERSION: '2.7.18'
+  PY2_DIR: 'C:\Python27-x86'
+
+jobs:
+  build:
+    name: Build (${{ matrix.platform }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows
+            os: windows-2022
+          # Enabled as the native module port reaches each platform. The
+          # per-step guards below are already keyed on matrix.platform, so
+          # adding an entry here plus its build steps is all that is needed.
+          #
+          # - platform: linux
+          #   os: ubuntu-24.04
+          # - platform: macos
+          #   os: macos-14
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          # The tree is ~760 MB with ~280 MB of history and no LFS; a shallow
+          # clone keeps checkout time reasonable.
+          fetch-depth: 1
+
+      # The builder rejects any version that is not byte-identical to the
+      # tracked VERSION file, so the version is always read from that file
+      # rather than synthesised. A tag is checked for agreement instead of
+      # overriding, which catches a tag pushed without bumping VERSION.
+      - name: Resolve version
+        id: version
+        shell: bash
+        run: |
+          version="$(tr -d ' \t\r\n' < VERSION)"
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            tag_version="${GITHUB_REF#refs/tags/v}"
+            if [ "${tag_version}" != "${version}" ]; then
+              echo "::error::Tag v${tag_version} does not match VERSION (${version}). Bump VERSION before tagging."
+              exit 1
+            fi
+          fi
+          echo "value=${version}" >> "$GITHUB_OUTPUT"
+          echo "Building version ${version}"
+
+      - name: Set up Python 3 for the release builder
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # actions/setup-python no longer provides Python 2.7, and the 32-bit
+      # build is required to match the shipped native extension modules.
+      - name: Cache Python 2.7 installer
+        if: matrix.platform == 'windows'
+        id: cache-py2-installer
+        uses: actions/cache@v4
+        with:
+          path: python2-installer
+          key: py2-installer-${{ env.PY2_VERSION }}-x86
+
+      - name: Download Python 2.7 (32-bit)
+        if: matrix.platform == 'windows' && steps.cache-py2-installer.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path python2-installer | Out-Null
+          $url = "https://www.python.org/ftp/python/$env:PY2_VERSION/python-$env:PY2_VERSION.msi"
+          Invoke-WebRequest -Uri $url -OutFile python2-installer\python2.msi
+
+      - name: Install Python 2.7 (32-bit)
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          $msi = (Resolve-Path python2-installer\python2.msi).Path
+          Start-Process msiexec.exe -Wait -ArgumentList @(
+            '/i', "`"$msi`"", '/qn', "TARGETDIR=$env:PY2_DIR", 'ALLUSERS=1'
+          )
+          & "$env:PY2_DIR\python.exe" -c "import sys, struct; print(sys.version); print('bits', struct.calcsize('P') * 8)"
+
+      - name: Verify Python 2.7 is 32-bit
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          $bits = & "$env:PY2_DIR\python.exe" -c "import struct; print(struct.calcsize('P') * 8)"
+          if ($bits.Trim() -ne '32') {
+            throw "Expected a 32-bit Python 2.7 runtime, got $bits-bit. The shipped .pyd modules are 32-bit."
+          }
+
+      - name: Install pip for Python 2.7
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri https://bootstrap.pypa.io/pip/2.7/get-pip.py -OutFile get-pip.py
+          & "$env:PY2_DIR\python.exe" get-pip.py
+          Remove-Item get-pip.py
+
+      - name: Cache Python 2.7 site-packages
+        if: matrix.platform == 'windows'
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PY2_DIR }}\Lib\site-packages
+          key: py2-site-${{ env.PY2_VERSION }}-${{ hashFiles('requirements.txt') }}
+
+      # Twisted 15.4.0 and toml 0.10.2 both publish usable wheels, but
+      # zope.interface 5.5.2 ships cp27 wheels only for macOS and win_amd64 -
+      # there is no 32-bit Windows wheel. Building its C extension would need
+      # MSVC 9.0, which is no longer distributed, so PURE_PYTHON makes it
+      # install the pure-Python implementation instead. The C accelerator is an
+      # optimisation only; the client does not depend on it.
+      - name: Install client runtime dependencies
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        env:
+          PURE_PYTHON: '1'
+        run: |
+          & "$env:PY2_DIR\python.exe" -m pip install -r requirements.txt
+          & "$env:PY2_DIR\python.exe" -c "import twisted, zope.interface, toml; print('runtime dependencies import cleanly')"
+
+      # pyglet is a pinned 1.2dev build that is not on PyPI, so it is vendored
+      # rather than installed. run.py puts vendor/ on sys.path for source runs,
+      # but the packaging step does not: the generated spec's pathex covers the
+      # repo root only, and the builder replaces PYTHONPATH wholesale with its
+      # own toolchain entries. Without this copy PyInstaller resolves no pyglet
+      # and emits a broken bundle with a warning rather than an error.
+      - name: Stage vendored pyglet into the Python 2.7 environment
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          $target = "$env:PY2_DIR\Lib\site-packages\pyglet"
+          if (Test-Path $target) { Remove-Item -Recurse -Force $target }
+          Copy-Item -Recurse -Force vendor\pyglet $target
+          & "$env:PY2_DIR\python.exe" -c "import pyglet; print('pyglet', pyglet.version)"
+
+      # The bootstrap only downloads when build/py2toolchain/vendor/<name>/ is
+      # absent, so a cache hit makes the build fully offline. The patch step
+      # that rewrites the vendored PyInstaller sources is idempotent and safe
+      # to re-run against a restored cache.
+      - name: Cache legacy PyInstaller toolchain
+        if: matrix.platform == 'windows'
+        uses: actions/cache@v4
+        with:
+          path: build/py2toolchain
+          key: py2toolchain-${{ hashFiles('tools/build_legacy_release.py') }}
+
+      # --skip-server omits the bundled BattleSpades dedicated server, which
+      # lives in a separate repository that is not available here. The client
+      # is complete; only local match hosting is missing from CI artifacts.
+      - name: Build release
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        env:
+          AOS_PY2_PYTHON: ${{ env.PY2_DIR }}\python.exe
+        run: |
+          python tools/build_release.py --version "${{ steps.version.outputs.value }}" --skip-server
+
+      - name: Upload release artifacts
+        if: matrix.platform == 'windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: AoSRevival-${{ steps.version.outputs.value }}-${{ matrix.platform }}
+          path: build/artifacts/
+          if-no-files-found: error
+          retention-days: 30

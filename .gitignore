@@ -30,3 +30,10 @@ server_favorites.json
 python/
 # Local code-analysis tool database
 .gitnexus/
+
+# Local planning document - working notes, not part of the project history
+PORT_PLAN.md
+
+# Port working directories
+port/oracle/traces/
+port/recovered/**/*.raw
