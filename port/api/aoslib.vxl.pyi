@@ -5581,7 +5581,7 @@ ZONE_ICON_TERRITORY_J: int  # 16
 ZONE_ICON_VIP: int  # 5
 ZOOMED_CROSSHAIR: int  # 1
 Z_ABOVE_WATERPLANE: int  # 238
-gl: _ModuleProxy  # <pyglet._ModuleProxy object at 0x06DC5570>
+gl: _ModuleProxy  # <pyglet._ModuleProxy object at 0x079F5570>
 json: module  # <module 'json' from 'C:\Python27-x86\lib\json\__init__.pyc'>
 print_function: instance  # _Feature((2, 6, 0, 'alpha', 2), (3, 0, 0, 'alpha', 0), 65536)
 random: module  # <module 'random' from 'C:\Python27-x86\lib\random.pyc'>
@@ -5670,16 +5670,16 @@ class Texture(AbstractImage):
         ...
     def get_transform(self, flip_x=False, flip_y=False, rotate=0):
         ...
-    image_data: property  # <property object at 0x077F14E0>
+    image_data: property  # <property object at 0x084214E0>
     images: int  # 1
     level: int  # 0
-    mipmapped_texture: property  # <property object at 0x077F1240>
+    mipmapped_texture: property  # <property object at 0x08421240>
     region_class: type  # 
     def save(self, filename=None, file=None, encoder=None):
         ...
     tex_coords: tuple  # (0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0)
     tex_coords_order: tuple  # (0, 1, 2, 3)
-    texture: property  # <property object at 0x077F1210>
+    texture: property  # <property object at 0x08421210>
     x: int  # 0
     y: int  # 0
     z: int  # 0
@@ -5729,7 +5729,7 @@ class VXL(object):
 class _memoryviewslice(memoryview):
     T: getset_descriptor  # <attribute 'T' of 'aoslib.vxl.memoryview' objects>
     __init__: wrapper_descriptor  # 
-    __pyx_getbuffer: PyCapsule  # <capsule object "getbuffer(obj, view, flags)" at 0x06DC9080>
+    __pyx_getbuffer: PyCapsule  # <capsule object "getbuffer(obj, view, flags)" at 0x079F9098>
     base: getset_descriptor  # <attribute 'base' of 'aoslib.vxl._memoryviewslice' objects>
     copy: method_descriptor  # 
     copy_fortran: method_descriptor  # 
@@ -5746,14 +5746,14 @@ class _memoryviewslice(memoryview):
 
 class array(object):
     __init__: wrapper_descriptor  # 
-    __pyx_getbuffer: PyCapsule  # <capsule object "getbuffer(obj, view, flags)" at 0x02C43D40>
+    __pyx_getbuffer: PyCapsule  # <capsule object "getbuffer(obj, view, flags)" at 0x03873D58>
     memview: getset_descriptor  # <attribute 'memview' of 'aoslib.vxl.array' objects>
 
 
 class memoryview(object):
     T: getset_descriptor  # <attribute 'T' of 'aoslib.vxl.memoryview' objects>
     __init__: wrapper_descriptor  # 
-    __pyx_getbuffer: PyCapsule  # <capsule object "getbuffer(obj, view, flags)" at 0x02C43D70>
+    __pyx_getbuffer: PyCapsule  # <capsule object "getbuffer(obj, view, flags)" at 0x03873D88>
     base: getset_descriptor  # <attribute 'base' of 'aoslib.vxl.memoryview' objects>
     copy: method_descriptor  # 
     copy_fortran: method_descriptor  # 
