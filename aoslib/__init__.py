@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import aoslib.font, aoslib.graphicsManager as graphics_manager
 the_graphics_manager = graphics_manager.graphics_manager
 
@@ -7,7 +9,7 @@ def calculate_scale_on_window_resize(window, image, invert_ratio=False, check_cu
     window_width = float(window.width)
     window_height = float(window.height)
     if original_width <= 0 or original_height <= 0 or window_height <= 0 or window_width <= 0:
-        print 'Invalid window size:', original_width, original_height, window_height, window_width
+        print('Invalid window size:', original_width, original_height, window_height, window_width)
         return (
          0, 0, 0, 0, False)
     original_ratio = original_width / original_height

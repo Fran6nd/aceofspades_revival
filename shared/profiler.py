@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import time
 from shared.constants import DEBUG_BUILD
 WINDOW = 10
@@ -76,9 +78,9 @@ class Profiler(object):
 
     def print_status(self):
         for name, entry in self.entries.iteritems():
-            print '%s: %.4fms (%.4fms)' % (name, entry.get_average() * 1000.0, entry.get_max() * 1000.0)
+            print('%s: %.4fms (%.4fms)' % (name, entry.get_average() * 1000.0, entry.get_max() * 1000.0))
 
-        print ''
+        print('')
 
     def display_status(self, window):
         entry_array = []

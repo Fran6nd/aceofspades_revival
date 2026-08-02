@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from shared.constants import *
 from aoslib import image
 from shared.common import get_map_directory
@@ -40,7 +42,7 @@ def load_ui(old_tex, name, center=False, scale=0.6, filtered=True, none_resource
         if old_tex is None or image.needs_reload(name, add_path=add_path) or old_tex.name != name:
             return image.load_texture(name, filtered=filtered, center=center, scale=scale, none_resource=none_resource, add_path=add_path)
     except MemoryError:
-        print 'Failed to load:', name, 'due to MemoryError'
+        print('Failed to load:', name, 'due to MemoryError')
 
     return old_tex
 

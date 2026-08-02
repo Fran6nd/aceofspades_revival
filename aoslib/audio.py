@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import ctypes
 from ctypes import *
 import sys, os, atexit
@@ -238,7 +240,7 @@ def check_al_error():
     error = alGetError()
     if error != AL_NO_ERROR:
         error_str = 'OpenAL Error: ' + alureGetErrorString() + ': ' + str(error)
-        print error_str
+        print(error_str)
         raise AudioError(error_str)
 
 
@@ -258,7 +260,7 @@ class AudioDevice(object):
                 raise AudioError('Failed to open OpenAL device: %s' % get_alure_error())
             self.direct_channels = alIsExtensionPresent('AL_SOFT_direct_channels')
             self.version = string_at(alGetString(AL_VERSION))
-            print 'OpenAL version:', self.version
+            print('OpenAL version:', self.version)
             alureStreamSizeIsMicroSec(AL_TRUE)
             alureUpdateInterval(0.05)
             if AL_EXT_EFX:
@@ -348,12 +350,12 @@ def get_buffer(name, path=None):
     data_id = name
     if data_id not in buffer_pool:
         if not path:
-            print "Attempted to load sound that wasn't pre-loaded : '%s'" % name
+            print("Attempted to load sound that wasn't pre-loaded : '%s'" % name)
             return
         current_time = clock()
         error = alGetError()
         if not os.path.exists(path):
-            print 'Missing audio file %s.%s' % (name, AUDIO_FORMAT_EXTENSION)
+            print('Missing audio file %s.%s' % (name, AUDIO_FORMAT_EXTENSION))
             return
         file = phys_open(path.replace('\\', '/'))
         data = file.read()
@@ -372,13 +374,13 @@ def get_buffer(name, path=None):
                 alDeleteBuffers(1, byref(ALuint(oldest_buffer[0])))
                 check_al_error()
                 if error == AL_NO_ERROR:
-                    print 'Deleting audio buffer for %s' % buffer_pool[key][2]
+                    print('Deleting audio buffer for %s' % buffer_pool[key][2])
                     del buffer_pool[key]
                 else:
-                    print 'alureCreateBufferFromMemory failed to create buffer for %s. Possibly out of audio memory' % name
+                    print('alureCreateBufferFromMemory failed to create buffer for %s. Possibly out of audio memory' % name)
                     break
             else:
-                print 'alureCreateBufferFromMemory failed to create buffer for %s. Possibly out of audio memory' % name
+                print('alureCreateBufferFromMemory failed to create buffer for %s. Possibly out of audio memory' % name)
                 break
             new_buffer[0] = alureCreateBufferFromMemory(data, len(data))
             check_al_error()
@@ -413,11 +415,11 @@ class Sound(object):
         if name is not None:
             if streaming:
                 if not filename:
-                    print 'Filename required for streaming audio:', name
+                    print('Filename required for streaming audio:', name)
                 self.buffer_id = -1
                 self.stream = alureCreateStreamFromFile(filename, CHUNK_LENGTH, 0, None)
                 if not self.stream:
-                    print 'Could not load sound:', filename, get_alure_error()
+                    print('Could not load sound:', filename, get_alure_error())
             else:
                 self.buffer_id = get_buffer(name)
                 if self.buffer_id:
@@ -475,7 +477,8 @@ class Sound(object):
         return (
          self._x, self._y, self._z)
 
-    def set_position(self, (x, y, z)):
+    def set_position(self, position):
+        x, y, z = position
         self._x = x
         self._y = y
         self._z = z
@@ -543,7 +546,7 @@ class Sound(object):
         loops -= 1
         if self.buffer_id == -1:
             if not alurePlaySourceStream(self.source, self.stream, NUM_BUFS, loops, None, None):
-                print 'Could not play sound', get_alure_error()
+                print('Could not play sound', get_alure_error())
                 return
         else:
             if loops:
@@ -552,7 +555,7 @@ class Sound(object):
                 alSourcei(self.source, AL_LOOPING, AL_FALSE)
             prev_error = alGetError()
             if not alurePlaySource(self.source, None, None):
-                print 'Could not play sound', get_alure_error()
+                print('Could not play sound', get_alure_error())
                 return
         if effect == AOS_EFFECT_REVERB and AL_EXT_EFX:
             alSource3i(self.source.value, AL_AUXILIARY_SEND_FILTER, audio_device.effect_slot[0].value, 0, 0)

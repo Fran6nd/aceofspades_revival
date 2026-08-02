@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from aoslib.images import global_images
 from aoslib.media import HUD_AUDIO_ZONE
 from aoslib.common import in_zone
@@ -252,7 +254,7 @@ class LeaderboardListPanel(ListPanelBase):
             available_scrolling_space = self.row_width - rank_and_name_width
             self.noof_visible_columns = min(int(math.floor(float(available_scrolling_space) / float(widest_column_width))), len(self.columns) - self.first_scrolling_column_index)
             if self.noof_visible_columns <= 0:
-                print 'no columns fit'
+                print('no columns fit')
                 return
             resized_column_width = math.floor(float(available_scrolling_space) / float(self.noof_visible_columns))
             for column_index in xrange(self.first_scrolling_column_index, len(self.columns)):

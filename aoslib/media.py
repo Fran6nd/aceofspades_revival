@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from aoslib import audio
 import audioop, wave, os, glob, random
 from aoslib.common import to_pitch_yaw
@@ -113,7 +115,7 @@ class MediaManager(object):
                 else:
                     player = GameSound(actual_sound_name, streaming=False)
             except:
-                print 'Failed to play sound:', name
+                print('Failed to play sound:', name)
                 return
 
             self.players.append(player)

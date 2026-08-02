@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
+
 import os, sys, subprocess
 
 from retail_compat import install_literal_eval_guard
@@ -23,8 +25,8 @@ if not __debug__:
     sys.stderr = HideOutput()
 '''
 
-print 'Starting Ace of Spades...'
-print 'Debug: %s' % __debug__
+print('Starting Ace of Spades...')
+print('Debug: %s' % __debug__)
 PROGRESSBAR_ICON_BASE = 0x50
 install_unicode_getcwd()
 if getattr(sys, 'frozen', False):
@@ -88,9 +90,9 @@ if '+debug' in sys.argv:
             try:
                 unicode_popen([debugger_path], cwd=application_path)
             except (OSError, ValueError) as error:
-                print 'Could not start optional debugger viewer: %s' % error
+                print('Could not start optional debugger viewer: %s' % error)
         else:
-            print 'Optional debugger viewer not found: %s' % debugger_path
+            print('Optional debugger viewer not found: %s' % debugger_path)
 
 try:
     import aoslib.run

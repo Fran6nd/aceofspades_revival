@@ -131,7 +131,7 @@ nowhere in the captured API of any module.
 It is a dead reference — a pooled Cython string constant left over from a build
 that once had the module — not a live import. No action needed.
 
-### 10. Thirty client modules cannot be parsed by Python 3 — OPEN
+### 10. Thirty client modules cannot be parsed by Python 3 — FIXED
 
 Originally recorded as two files, `aoslib/gui.py` and
 `aoslib/scenes/frontend/leaderboardListPanel.py`, because those are the two the
@@ -152,6 +152,21 @@ A further 54 files parse but contain idioms that misbehave at runtime rather
 than failing loudly — 57 uses of `xrange` across 31 files and 40 of
 `iteritems`/`iterkeys`/`itervalues` across 22 are the bulk. Those are the
 dangerous ones, because nothing flags them until the code runs.
+
+Fixed: all 30 converted. `print x` became `print(x)` with
+`from __future__ import print_function` added to each file, and long literals
+had their suffix stripped. Both forms are valid in Python 2.7 *and* Python 3,
+so the client still builds on 2.7 while the migration proceeds.
+
+Two files also used Python 2 tuple parameter unpacking
+(`def make_block_color((r, g, b))` in `aoslib/common.py`, `set_position` in
+`aoslib/audio.py`). That has no Python 3 equivalent and cannot be straddled, so
+both were rewritten to unpack in the body — matching the idiom already used by
+`to_float_color` alongside them.
+
+The audit now reports **0 of 346 files unparseable**. The 70 files carrying
+runtime idioms (`xrange`, `iteritems`) remain; those parse fine and are a
+separate, reviewable pass.
 
 Run `python tools/port/audit_python3.py` for the current breakdown.
 
@@ -226,3 +241,28 @@ result was already sitting in the artifact.
 
 Fixed by catching the parse error and falling back to annotating the captured
 output, and by restricting that step to actual harness failures.
+
+### 14. `get_darker_colour` references an undefined name — FIXED
+
+`aoslib/common.py:189`
+
+The function read `base_colourr[1]` where the parameter is `base_colour` — a
+doubled trailing character. Any call raises `NameError`, so the darker-colour
+path was dead code that would crash the moment it was reached. Its sibling
+`get_lighter_colour` directly above is correct, which is why the typo survived
+review.
+
+Found while converting the file for Python 3. Fixed by correcting the name.
+
+### 15. `toml` was a dependency the client never imported — FIXED
+
+`requirements.txt`
+
+`toml==0.10.2` was pinned but is not imported anywhere in the client. The only
+TOML the client produces is the local server config, which `local_host.py`
+writes by hand with string formatting (`_toml_string`). Removed rather than
+carried into the Python 3 migration.
+
+`zope.interface` is likewise never imported directly, but it is Twisted's own
+dependency, so the pin stays with a comment explaining that 5.5.2 is the last
+Python 2.7-compatible release.

@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from shared.steam import SteamGetCurrentGameLanguage
 from shared.constants import *
 from aoslib import text
@@ -23,7 +25,7 @@ try:
 except:
     language = SteamGetCurrentGameLanguage()
 
-print 'Language detected: ', language
+print('Language detected: ', language)
 if language == '':
     language = 'english'
 local_language_id = language_ids[language]

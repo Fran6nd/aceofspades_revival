@@ -17,5 +17,13 @@
 # separate environment, copy vendor/pyglet into its site-packages.
 
 Twisted==15.4.0
+
+# Not imported by the client directly - it is Twisted's own dependency. The pin
+# stays because 5.5.2 is the last release that supports Python 2.7, and an
+# unpinned resolve can pick a Python 3-only version.
 zope.interface==5.5.2
-toml==0.10.2
+
+# toml was listed here but is never imported anywhere in the client. The only
+# TOML the client produces is the local server config, which local_host.py
+# writes by hand with string formatting (see _toml_string). Removed rather than
+# carried forward into the Python 3 migration.

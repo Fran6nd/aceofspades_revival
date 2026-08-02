@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 from aoslib.kv6 import KV6
 from aoslib.physfs import join
@@ -37,9 +39,9 @@ def check_model(name, crc, instance):
             from aoslib.gamemanager import GameManager
             GameManager.invalid_data_error = True
             model_bounding_box = KV6.get_bounding_box_sizes(instance)
-            print 'Asset Size Invalid Report (%s): Actual %s - Maximum: %s' % (repr(name), model_bounding_box, A2428)
+            print('Asset Size Invalid Report (%s): Actual %s - Maximum: %s' % (repr(name), model_bounding_box, A2428))
         else:
-            print 'Asset Warning - file has been altered (%s)' % name
+            print('Asset Warning - file has been altered (%s)' % name)
 
 
 def load_model(global_name, name, offset=None, prefab=False, ugc=False, min_model_detail=0):
@@ -81,10 +83,10 @@ def create_adjacent_points_file(model, path):
         try:
             json.dump(adjacent_points_data, output_file)
         except:
-            print 'create_adjacent_points_file: json failed to write to file: ', path
+            print('create_adjacent_points_file: json failed to write to file: ', path)
 
     except IOError as e:
-        print 'create_adjacent_points_file: failed to create file: ', path
+        print('create_adjacent_points_file: failed to create file: ', path)
 
     if output_file != None:
         output_file.close()
@@ -107,18 +109,18 @@ def load_adjacent_points(model, global_name, name, ugc=False):
                 adjacent_points_data = json.load(file)
                 crc, adjacent_points = adjacent_points_data
             except:
-                print 'load_adjacent_points: json failed to retrieve data from file: ', path
+                print('load_adjacent_points: json failed to retrieve data from file: ', path)
 
             if file:
                 file.close()
         except IOError as e:
-            print 'load_adjacent_points: Failed to open file: ', path
+            print('load_adjacent_points: Failed to open file: ', path)
 
     if crc == None or crc <= 0 or crc != model.get_crc():
-        print 'load_adjacent_points: crc mismatch for kv6 model ', name, '. - creating cache file'
+        print('load_adjacent_points: crc mismatch for kv6 model ', name, '. - creating cache file')
     else:
         model.set_adjacent_points(adjacent_points)
-        print 'loaded adjacent points for kv6 model', name
+        print('loaded adjacent points for kv6 model', name)
     return
 
 
@@ -504,15 +506,15 @@ def load_models(detail_level, model_detail):
 def check_model_size(largest_bounding_box, name, instance):
     path = join(KV6_PATH, name + '.kv6')
     model_bounding_box = KV6.get_bounding_box_sizes(instance)
-    print 'Model Bounding Box : ' + str(model_bounding_box)
+    print('Model Bounding Box : ' + str(model_bounding_box))
     bounding_boxes = zip(*(largest_bounding_box, model_bounding_box))
-    print bounding_boxes
+    print(bounding_boxes)
     x1, x2 = bounding_boxes[0]
     y1, y2 = bounding_boxes[1]
     z1, z2 = bounding_boxes[2]
     if x1 >= x2 and y1 >= y2 and z1 >= z2:
-        print 'True'
+        print('True')
         return True
     else:
-        print 'False'
+        print('False')
         return False

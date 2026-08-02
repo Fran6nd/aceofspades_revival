@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import pyglet.image
 from pyglet import gl
 from aoslib import calculate_scale_on_window_resize
@@ -76,7 +78,7 @@ def finished():
     global progress_image_dark
     global splash_image
     if progress != PROGRESS_MAX:
-        print 'Progress bar finished on %d of %d. Values in loadingscreen.py need updating' % (progress, PROGRESS_MAX)
+        print('Progress bar finished on %d of %d. Values in loadingscreen.py need updating' % (progress, PROGRESS_MAX))
     splash_image = None
     progress_image = None
     progress_image_dark = None

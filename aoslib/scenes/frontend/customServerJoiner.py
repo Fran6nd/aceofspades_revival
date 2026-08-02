@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import urllib
 from twisted.web.client import getPage
 from twisted.internet import reactor
@@ -56,7 +58,7 @@ class CustomServerJoiner:
         if server.is_matching_version:
             self.server_spawners.append(server)
         else:
-            print 'Incompatible spawner found:', ip, port, tags
+            print('Incompatible spawner found:', ip, port, tags)
 
     def finished_getting_servers_callback(self):
         self.is_ready = True
@@ -84,7 +86,7 @@ class CustomServerJoiner:
                     self.join_when_ready = False
             except:
                 import traceback
-                print traceback.format_exc()
+                print(traceback.format_exc())
                 self.handle_error((lambda : self.client.cancel_game_with_local_error('LOBBY_ERROR_SERVER_CONNECTION_FAILED')))
 
     def handle_error(self, cancel_function):
@@ -129,7 +131,7 @@ class CustomServerJoiner:
                 response = json.loads(result)
             except:
                 import traceback
-                print traceback.format_exc()
+                print(traceback.format_exc())
                 try:
                     errortext = strings.get_by_id_or_except('LOBBY_ERROR_SERVER_ERROR_' + str(result))
                     self.handle_error((lambda : self.client.cancel_game_with_local_error(errortext)))

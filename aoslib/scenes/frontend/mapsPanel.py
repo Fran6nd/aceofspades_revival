@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from aoslib.scenes.frontend.listPanelBase import ListPanelBase
 from aoslib.scenes.frontend.expandableListPanel import ExpandableListPanel
 from aoslib.scenes.main.mapListItem import MapListItem
@@ -162,7 +164,7 @@ class MapsPanel(LobbyPanelBase):
 
     def on_row_selected(self, index, row):
         if row is None:
-            print 'Chosen map row could not be selected'
+            print('Chosen map row could not be selected')
             return
         else:
             if type(row) is CategoryListItem:

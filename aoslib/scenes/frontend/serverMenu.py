@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from aoslib.scenes import Scene, ElementScene, MenuScene
 from aoslib.network import QueryClient
 from shared.constants import A1054, A2362, A2361
@@ -385,11 +387,11 @@ class ServerMenu(MenuScene):
 
     def on_server_error(self, error):
         self.status_text = strings.SERVER_LIST_ERROR
-        print "Error getting servers:", error
+        print("Error getting servers:", error)
 
     def got_server_callback(self, name, ip, port, queryPort, ping, map, mode, num_players, max_players, tags, time_last_played):
         server = ServerInfo(name, ip, port, queryPort, ping, map, mode, num_players, max_players, tags, time_last_played)
-        print 'got server ' + name
+        print('got server ' + name)
         if not server.monitor and server.is_matching_version:
             if self.manager.setting_favourites:
                 key = (server.ip, server.port)
@@ -398,7 +400,7 @@ class ServerMenu(MenuScene):
                 self.on_server_response(server, ping / 1000.0)
 
     def finished_getting_servers_callback(self):
-        print 'finished getting servers'
+        print('finished getting servers')
         self.status_text = ''
         self.status_text = strings.RECEIVED_N_SERVERS.format(len(self.list_display.lines))
 

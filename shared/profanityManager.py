@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os, re, random
 
 class ProfanityManager:
@@ -14,7 +16,7 @@ class ProfanityManager:
             dict_data = dict_file.read()
             dict_file.close()
         except IOError:
-            print "Couldn't find file profanity dictionary.", file
+            print("Couldn't find file profanity dictionary.", file)
 
         return dict_data
 

@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import pyglet
 from pyglet.gl import glPushMatrix, glPopMatrix, glTranslatef, glEnable, GL_TEXTURE_2D, glColor4ub, glScalef, glColor4f
 from aoslib.font import Font, Layout, ALIGN_LEFT, ALIGN_CENTER, ALIGN_RIGHT, ALIGN_TOP, ALIGN_BOTTOM, ALIGN_JUSTIFY
@@ -109,30 +111,30 @@ credits_text_font = None
 generate_fonts = False
 
 def generate_font_maps():
-    print 'font_map_edo = {'
+    print('font_map_edo = {')
     for i in xrange(4, 120):
         font = Font(os.path.join(FONTS_DIRECTORY, 'Edo.ttf'), i, 'Edo')
-        print i, " : { 'pixel_size' : ", font.get_char_height(), '},'
+        print(i, " : { 'pixel_size' : ", font.get_char_height(), '},')
 
-    print '}'
-    print 'font_map_standard_med = {'
+    print('}')
+    print('font_map_standard_med = {')
     for i in xrange(4, 120):
         font = Font(os.path.join(FONTS_DIRECTORY, 'A750-Sans-Medium.ttf'), i, 'A750-Sans-Medium')
-        print i, " : { 'pixel_size' : ", font.get_char_height(), '},'
+        print(i, " : { 'pixel_size' : ", font.get_char_height(), '},')
 
-    print '}'
-    print 'font_map_standard_bold = {'
+    print('}')
+    print('font_map_standard_bold = {')
     for i in xrange(4, 120):
         font = Font(os.path.join(FONTS_DIRECTORY, 'A750-Sans-Bold.ttf'), i, 'A750-Sans-Bold')
-        print i, " : { 'pixel_size' : ", font.get_char_height(), '},'
+        print(i, " : { 'pixel_size' : ", font.get_char_height(), '},')
 
-    print '}'
-    print 'font_map_tuffy_bold = {'
+    print('}')
+    print('font_map_tuffy_bold = {')
     for i in xrange(4, 120):
         font = Font(os.path.join(FONTS_DIRECTORY, 'Tuffy_Bold.ttf'), i, 'Tuffy_Bold')
-        print i, " : { 'pixel_size' : ", font.get_char_height(), '},'
+        print(i, " : { 'pixel_size' : ", font.get_char_height(), '},')
 
-    print '}'
+    print('}')
 
 
 def load_font(name, size, enable_resize = True):

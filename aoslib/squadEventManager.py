@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from shared.steam import SteamRegisterLobbyChatCallback, SteamRegisterLobbyUpdateCallback, SteamRegisterLobbyJoinRequestCallback, SteamRegisterLobbyDataChangedCallback, SteamGetCurrentLobby
 from shared.steam import SteamAmITheLobbyOwner, SteamSetLobbyData, SteamGetPersonaName, SteamLeaveLobby, GetUserSteamID, SteamGetLobbyOwner
 import ast
@@ -49,7 +51,7 @@ class SquadEventManager:
                             SteamLeaveLobby()
             self.call_callback(self.on_chat, friend_id, text)
         except:
-            print 'squadEventManager - invalid chat data received'
+            print('squadEventManager - invalid chat data received')
 
     def on_user_joined_callback(self, friend_id):
         self.call_callback(self.on_user_join, friend_id)

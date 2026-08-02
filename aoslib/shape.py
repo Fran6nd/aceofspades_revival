@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 __docformat__ = 'restructuredtext'
 __version__ = '1.0'
 import math, pyglet
@@ -648,7 +650,7 @@ if __name__ == '__main__':
         for shape in shapes:
             for name in names:
                 if name == id(shape):
-                    print shape
+                    print(shape)
 
 
     pyglet.app.run()

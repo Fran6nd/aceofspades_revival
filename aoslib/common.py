@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import math, time, colorsys
 from shared.glm import Vector3
 from pyglet import gl
@@ -22,10 +24,10 @@ def get_map_value_safe(map, key, silent=False, default_value=None):
                 value = map[key.lower()]
             except KeyError:
                 if not silent:
-                    print 'map does not contain key ', str(key)
+                    print('map does not contain key ', str(key))
 
         elif not silent:
-            print 'map does not contain key ', str(key)
+            print('map does not contain key ', str(key))
 
     return value
 
@@ -169,7 +171,8 @@ def get_block_color(color):
     return (r, g, b)
 
 
-def make_block_color((r, g, b)):
+def make_block_color(color):
+    r, g, b = color
     return r << 16 | g << 8 | b
 
 
@@ -183,7 +186,7 @@ def get_lighter_colour(base_colour, factor=25):
 
 
 def get_darker_colour(base_colour, factor=25):
-    return (base_colour[0] - factor, base_colourr[1] - factor, base_colour[2] - factor, base_colour[3])
+    return (base_colour[0] - factor, base_colour[1] - factor, base_colour[2] - factor, base_colour[3])
 
 
 def to_float_color_alpha(color):

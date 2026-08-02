@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from aoslib.scenes import MenuScene
 from aoslib.common import collides
 from shared.constants import MENU_FONT_COLOR
@@ -161,13 +163,13 @@ class JoiningGameMenu(MenuScene):
     def got_server_callback(self, name, ip, port, queryPort, ping, map, mode, num_players, max_players, tags, time_last_played):
         print("I got calledback")
         server = ServerInfo(name, ip, port, queryPort, ping, map, mode, num_players, max_players, tags, time_last_played)
-        print "Server Info: ", server
-        print "Server Match: ", server.is_matching_version
+        print("Server Info: ", server)
+        print("Server Match: ", server.is_matching_version)
         if not server.is_matching_version:
-            print "Not matching version"
+            print("Not matching version")
             return
         if self.playlist_id != 0 and int(self.playlist_id) != int(server.playlist_id):
-            print "Not matching playlist"
+            print("Not matching playlist")
             return
         self.servers_count += 1
         self.server_responses.append(server)

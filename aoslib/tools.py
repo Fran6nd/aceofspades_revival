@@ -3,7 +3,7 @@ import struct
 def make_server_identifier(ip, port = 32887):
     try:
         int(ip)
-        a = (ip & 4278190080L) >> 24
+        a = (ip & 4278190080) >> 24
         b = (ip & 16711680) >> 16
         c = (ip & 65280) >> 8
         d = ip & 255
@@ -46,7 +46,7 @@ def get_server_details(value):
         host_ip = '%s.%s.%s.%s' % (host & 255,
          (host & 65280) >> 8,
          (host & 16711680) >> 16,
-         (host & 4278190080L) >> 24)
+         (host & 4278190080) >> 24)
     else:
         splitted = value.split(':')
         if len(splitted) == 1:

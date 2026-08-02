@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from shared.steam import SteamInitializeClient, SteamRequestLobbyJoin
 from shared import profiler
 import shared.constants as constants
@@ -15,7 +17,7 @@ install_pyglet_win32_raw_mouse()
 SteamInitializeClient()
 import sys
 import ctypes
-print 'Your Python version is %s.%s.%s' % sys.version_info[:3]
+print('Your Python version is %s.%s.%s' % sys.version_info[:3])
 try:
     f = open('version.txt', 'r')
     game_build_version = f.read()
@@ -23,13 +25,13 @@ try:
 except:
     game_build_version = 0
 
-print 'Current client build:', game_build_version
+print('Current client build:', game_build_version)
 if 'fullcrashdump' in sys.argv:
     enable_crashdump(True)
 else:
     enable_crashdump(False)
 from aoslib import strings
-print 'Strings imported'
+print('Strings imported')
 from aoslib.config import Configuration
 if '-reset' in sys.argv:
     global_config = Configuration('config.txt', reset=True)
@@ -44,16 +46,16 @@ else:
         if returnValue == True:
             global_config = Configuration('config.txt', reset=True)
         else:
-            print 'Corrupt config file'
+            print('Corrupt config file')
             sys.exit(1)
 
-print 'Config loaded'
+print('Config loaded')
 if global_config.antialias >= 3 or global_config.antialias < 0:
     global_config.antialias = 0
     global_config.save()
 debug_gl = __debug__
 pyglet.options['debug_gl'] = debug_gl
-print 'debug_gl is', 'on' if debug_gl else 'off'
+print('debug_gl is', 'on' if debug_gl else 'off')
 
 def is_good_screen_mode(mode):
     if mode.width >= 640 and mode.height >= 480:
@@ -128,7 +130,7 @@ class Window(pyglet.window.Window):
 
 options = {'double_buffer': True,
  'depth_size': 24}
-print 'Starting MSAA Compatibility test'
+print('Starting MSAA Compatibility test')
 test_config = screen.get_best_config(pyglet.gl.Config(**options))
 temp_window = Window(resizable=True, config=test_config, visible=False, width=640, height=480)
 temp_window.switch_to()
@@ -142,33 +144,33 @@ try:
         is_msaa_supported = True
     else:
         is_msaa_supported = False
-        print 'Anti-aliasing is not supported on this computer, turning it off.\n'
+        print('Anti-aliasing is not supported on this computer, turning it off.\n')
         global_config.antialias = 0
         global_config.save()
 except pyglet.window.NoSuchConfigException:
-    print 'Anti-aliasing is not supported on this computer, turning it off.\n'
+    print('Anti-aliasing is not supported on this computer, turning it off.\n')
     global_config.antialias = 0
     global_config.save()
 
-print 'Finished MSAA Compatibility test'
+print('Finished MSAA Compatibility test')
 from pyglet.gl.gl_info import GLInfo
 info = GLInfo()
 info.set_active_context()
 constants.A1044 = info.have_version(2, 0)
 if not constants.A1044:
     global_config.detail_level = -1
-    print 'OpenGL 2.0 or above not detected. Falling back to compatibility shaders.\n'
+    print('OpenGL 2.0 or above not detected. Falling back to compatibility shaders.\n')
 info = None
 temp_window.close()
-print 'Loading images'
+print('Loading images')
 if global_config.detail_level < 0:
-    print 'Compatibility shaders are enabled.\n'
+    print('Compatibility shaders are enabled.\n')
     constants.A1044 = False
 import aoslib.image as aosimage
-print 'Setting texture quality'
+print('Setting texture quality')
 pyglet.resource.path = ['png/ui']
 aosimage.set_texture_quality(global_config.texture_quality)
-print 'Indexing images'
+print('Indexing images')
 pyglet.resource.reindex()
 import graphicsManager as graphics_manager
 the_graphics_manager = graphics_manager.graphics_manager
@@ -188,7 +190,7 @@ try:
     py_config = screen.get_best_config(pyglet.gl.Config(**options))
 except pyglet.window.NoSuchConfigException:
     pyglet.options['shadow_window'] = False
-    print '(could not create OpenGL config - using most compatible config)'
+    print('(could not create OpenGL config - using most compatible config)')
     py_config = screen.get_best_config(pyglet.gl.Config(**compat_options_to_use))
 
 window = Window(resizable=True, config=py_config, vsync=global_config.vsync, visible=False, width=current_resolution.width, height=current_resolution.height, caption='Ace of Spades')
@@ -254,12 +256,12 @@ elif (
     )
 
 window.invalid = False
-print 'Starting loading screen...'
+print('Starting loading screen...')
 import loadingscreen
 loadingscreen.init(window)
 loadingscreen.update_progress()
 loadingscreen.update_progress()
-print 'Setting icons'
+print('Setting icons')
 icons = []
 from aoslib.image import load_image
 for size in (16, 32, 64, 128):
@@ -268,7 +270,7 @@ for size in (16, 32, 64, 128):
 
 window.set_icon(*icons)
 loadingscreen.update_progress()
-print 'Initializing GLEW'
+print('Initializing GLEW')
 from pyglet.lib import load_library
 platform = pyglet.window.get_platform()
 if sys.platform == 'win32':
@@ -301,31 +303,31 @@ if debug_gl and __debug__:
         source = DEBUG_SOURCES.get(source, source)
         typ = DEBUG_TYPES.get(typ, typ)
         severity = DEBUG_SEVERITIES.get(severity, severity)
-        print length, message
+        print(length, message)
         message = message[:length]
         import traceback
         traceback.print_stack()
-        print 'type: %s, ID: %s, severity: %s, message: %s' % (typ,
+        print('type: %s, ID: %s, severity: %s, message: %s' % (typ,
          identifier,
          severity,
-         message)
+         message))
 
 
     if gl.gl_info.have_extension('GL_ARB_debug_output'):
         callback_c = gl.GLDEBUGPROCARB(on_error)
         gl.glDebugMessageCallbackARB(callback_c, None)
         gl.glEnable(gl.GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB)
-print 'Setting default OpenGL settings'
+print('Setting default OpenGL settings')
 gl.glEnable(gl.GL_BLEND)
 gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
 gl.glTexEnvf(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE)
 loadingscreen.show_window()
 loadingscreen.update_progress()
-print 'Creating pyglet reactor'
+print('Creating pyglet reactor')
 import pygletreactor
 pygletreactor.install()
 from twisted.internet import reactor
-print 'Loading shaders'
+print('Loading shaders')
 from aoslib.shaders import load_shaders, unload_shaders
 from shared.common import clamp
 detail_level = clamp(global_config.detail_level, -1, 2)
@@ -343,14 +345,14 @@ while not finished:
         finished = True
     except Exception as e:
         import traceback
-        print traceback.format_exc()
+        print(traceback.format_exc())
         unload_shaders()
         detail_level += detail_inc
         if detail_inc < 0 and detail_level < -1:
             detail_inc = 1
             detail_level = original_detail + detail_inc
         if detail_inc > 0 and detail_level > 2:
-            print 'GLSL and compatibility shaders failed to load.\n'
+            print('GLSL and compatibility shaders failed to load.\n')
             finished = True
             failed = True
 
@@ -364,21 +366,21 @@ if failed:
     raise GLException(strings.GL_ERROR_SHADERS_INIT)
 global_config.set('detail_level', detail_level)
 import time
-print 'Loading images...'
+print('Loading images...')
 import aoslib.images
-print 'Initializing draw'
+print('Initializing draw')
 import aoslib.draw
-print 'Initializing common'
+print('Initializing common')
 import aoslib.common
-print 'Initializing shape'
+print('Initializing shape')
 import aoslib.shape
-print 'Initializing gui'
+print('Initializing gui')
 import aoslib.gui
 import aoslib.scenes.ingame_menus.ugcSettings
 loadingscreen.update_progress()
 import os
 from revival_paths import native_utf8_path
-print 'Initializing Scene'
+print('Initializing Scene')
 from aoslib.scenes import Scene
 from aoslib.squadEventManager import *
 loadingscreen.update_progress()
@@ -389,10 +391,10 @@ from aoslib.gamemanager import GameManager
 class BootClass:
 
     def main(self, dt):
-        print 'Checking arguments'
+        print('Checking arguments')
         if not GameManager.invalid_data_error and len(sys.argv) > 1:
             go_to_main_menu = False
-            print 'Arguments passed: ', sys.argv
+            print('Arguments passed: ', sys.argv)
             invite_received = False
             try:
                 connect_lobby_arg = sys.argv.index('+connect_lobby')
@@ -420,7 +422,7 @@ class BootClass:
         else:
             go_to_main_menu = True
         if go_to_main_menu:
-            print 'Starting main menu'
+            print('Starting main menu')
             from aoslib.scenes.frontend.menuScene import MenuScene
             if WAIT_RUN:
 
@@ -439,11 +441,11 @@ class BootClass:
     def __init__(self):
         global loadingscreen
         from shared.constants import A2265
-        print 'Hiding cursor'
+        print('Hiding cursor')
         cursor_image = load_image('cursor')
         cursor = pyglet.window.ImageMouseCursor(cursor_image, 6, cursor_image.height - 4)
         window.set_mouse_cursor(cursor)
-        print 'Loading models...'
+        print('Loading models...')
         from aoslib import physfs
         path = os.getcwd()
         physfs.append_path(native_utf8_path(path))
@@ -451,7 +453,7 @@ class BootClass:
         physfs.append_path(native_utf8_path(os.path.join(path, '../../Common')))
         import aoslib.models
         aoslib.models.load_models(global_config.orig_detail_level, global_config.model_detail)
-        print 'Creating game manager...'
+        print('Creating game manager...')
         from aoslib.gamemanager import GameManager
         self.manager = GameManager(global_config, window)
         from aoslib.jump_smoothing_patch import install as install_jump_smoothing
@@ -459,7 +461,7 @@ class BootClass:
         from aoslib.parachute_key_patch import install as install_parachute_key
         install_parachute_key(self.manager)
         self.manager.preload_favourite_servers()
-        print 'Game manager created'
+        print('Game manager created')
         loadingscreen.finished()
         pyglet.clock.schedule_once(self.main, 0)
         if A2265:

@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from aoslib.scenes.frontend.listPreviewMenuBase import ListPreviewMenuBase
 from aoslib.scenes.frontend.ugcMapPreviewPanel import UGCMapPreviewPanel
 from aoslib.scenes.frontend.ugcMapsListPanel import UGCMapsListPanel
@@ -180,7 +182,7 @@ class UGCPublishMenu(ListPreviewMenuBase):
                 ugc_data_to_publish = ugc_data(network=None, local_filename=filename_to_publish)
                 ugc_data_to_publish.publish(self.publish_finished_callback, ugc_title=ugc_title)
             else:
-                print 'Unable to publish as row filename was not set'
+                print('Unable to publish as row filename was not set')
         elif self.message_box_type == MSG_TYPE_ERROR_UPLOADING:
             self.show_message_box(MSG_TYPE_NONE, False)
         elif self.message_box_type == MSG_TYPE_DELETE_MAP_CONFIRMATION:

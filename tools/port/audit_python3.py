@@ -67,6 +67,9 @@ RUNTIME_IDIOMS = [
 # matters because the fixes are not comparable: long literals are a mechanical
 # suffix strip, whereas `except X, e` and backticks need real edits.
 PARSE_FAILURE_CAUSES = [
+    # Checked before `print`, because a file can contain both and this one has
+    # no Python 3 equivalent - it needs a real edit, not a mechanical rewrite.
+    ('tuple parameter unpacking', re.compile(r'^\s*def\s+\w+\s*\((\s*self\s*,)?\s*\(', re.M)),
     ('print statement', re.compile(r'^\s*print\s+[^(=]', re.M)),
     ('long literal (123L)', re.compile(r'(?<![\w.])\d+[lL](?![\w])')),
     ('except X, e', re.compile(r'^\s*except\s+[^\n:]+,\s*\w+\s*:', re.M)),

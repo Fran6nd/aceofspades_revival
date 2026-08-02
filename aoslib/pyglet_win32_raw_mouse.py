@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import ctypes
 import sys
 
@@ -17,7 +19,7 @@ def _warn_once(message):
     if message in _warned_messages:
         return
     _warned_messages.add(message)
-    print message
+    print(message)
 
 
 class RAWINPUTHEADER(ctypes.Structure):
@@ -140,11 +142,11 @@ def install():
         size = ctypes.c_uint(0)
         header_size = ctypes.c_uint(ctypes.sizeof(RAWINPUTHEADER))
         result = user32.GetRawInputData(ctypes.c_void_p(lParam), RID_INPUT, None, ctypes.byref(size), header_size.value)
-        if result == 4294967295L or not size.value:
+        if result == 4294967295 or not size.value:
             return None
         data = ctypes.create_string_buffer(size.value)
         result = user32.GetRawInputData(ctypes.c_void_p(lParam), RID_INPUT, data, ctypes.byref(size), header_size.value)
-        if result == 4294967295L:
+        if result == 4294967295:
             return None
         return ctypes.cast(data, ctypes.POINTER(RAWINPUT)).contents
 

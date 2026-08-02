@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from shared.steam import SteamRegisterLobbyChatCallback, SteamRegisterLobbyUpdateCallback, SteamGetLobbyMemberName, SteamSendChatMessage, GetUserSteamID, SteamGetLobbyOwner
 from aoslib.text import split_text_to_fit_screen, chat_font, chat_font_tuffy, draw_text_with_size_validation
 from shared.constants import MENU_FONT_COLOR, MENU_FONT_COLOR2
@@ -91,7 +93,7 @@ class SquadChatLog(HandlerBase):
                 formatted = translated.format(*data_list[1])
                 self.add_message(formatted, A2710)
         except:
-            print 'squadChatLog - invalid chat data received'
+            print('squadChatLog - invalid chat data received')
 
         return
 

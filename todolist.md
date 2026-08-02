@@ -115,24 +115,49 @@ and already passes on all three platforms, so the harness exists up front.
 - [ ] Inventory every `.py` file by Python 2 vs 3 compatibility
 - [ ] Identify files Python 3 cannot currently parse, starting with
       `aoslib/gui.py` and `aoslib/scenes/frontend/leaderboardListPanel.py`
-- [ ] Choose the target Python 3 minimum version
-- [ ] Decide how the 2.7 client stays buildable during the transition
+- [x] Choose the target Python 3 minimum version — 3.9 or later, set by
+      modern Twisted and pyglet 2.x; CI already uses 3.12
+- [x] Decide how the 2.7 client stays buildable during the transition —
+      straddle: every conversion stays valid in both 2.7 and 3.x
 
 ### 3.2 Conversion
-- [ ] Convert the standalone root modules
+- [x] Convert the syntax Python 3 cannot parse (30 files, all packages)
 - [ ] Convert `shared/`
 - [ ] Convert `aoslib/` pure-Python modules
 - [ ] Convert `playlists/`
 - [ ] Remove the method-slicing workaround in the tests once their targets parse
-- [ ] Replace the Python 2-era pinned dependencies with current releases
+- [~] Replace the Python 2-era pinned dependencies with current releases —
+      `toml` removed as unused; Twisted decision below
 
-### 3.3 pyglet migration
+### 3.3 Twisted removal
+
+Investigation: Twisted appears in 11 files and roughly 30 call sites, none of
+them gameplay networking — that runs through `enet` and `aoslib.network`. Every
+replacement already exists in the tree: `revival_http` for HTTP, `pyglet.clock`
+for timers, stdlib `logging` for logs. `twisted.web.client.getPage`, used in
+`customServerJoiner.py`, was removed from Twisted in 22.1.0.
+
+`aoslib/pygletreactor.py` is the crux: it slaves Twisted's reactor to pyglet's
+event loop at 10 Hz, depends on a private underscore module, and `local_host.py`
+already documents it as unreliable. Removing Twisted deletes it outright rather
+than porting it onto pyglet 2.x.
+
+- [ ] Replace `deferToThread` in `aoslib/web.py` and `aoslib/scoremanager.py`
+- [ ] Replace the Deferred wrapper around local file I/O in `aoslib/favourite.py`
+- [ ] Replace `getPage` in `customServerJoiner.py` with `revival_http`
+- [ ] Remove the dead `getPage` import in `playlistServerJoiner.py`
+- [ ] Replace `reactor.callLater` with `pyglet.clock.schedule_once`
+- [ ] Replace `twisted.python.log` with stdlib `logging`
+- [ ] Delete `aoslib/pygletreactor.py` and its PyInstaller hook workaround
+- [ ] Drop Twisted and zope.interface from `requirements.txt`
+
+### 3.4 pyglet migration
 - [ ] Scope the move from the vendored 1.2dev bytecode to a maintained pyglet
 - [ ] Map every pyglet API the client uses to its modern equivalent
 - [ ] Port windowing, GL context handling, and batched graphics
 - [ ] Replace the raw-mouse compatibility patch with a supported input path
 
-### 3.4 Validation
+### 3.5 Validation
 - [ ] Extend the test suite to cover converted modules
 - [ ] Keep all three platforms green throughout
 

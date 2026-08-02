@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from aoslib.scenes.frontend.listPreviewMenuBase import ListPreviewMenuBase
 from aoslib.scenes.frontend.previewPanelBase import PreviewPanelBase
 from aoslib.scenes.frontend.listPanelBase import ListPanelBase
@@ -521,7 +523,7 @@ class BaseSquadLobbyMenu(ListPreviewMenuBase):
                     self.last_host_message[0] = formatted
                     self.last_host_message[1] = time.time()
         except:
-            print 'baseSquadLobbyMenu: invalid chat data received'
+            print('baseSquadLobbyMenu: invalid chat data received')
 
     def update_team_count_lobby_data(self):
         team1 = 0
@@ -696,7 +698,7 @@ class BaseSquadLobbyMenu(ListPreviewMenuBase):
         return len(self.list_panel.rows)
 
     def on_target_monitor_changed(self, target_monitor):
-        print 'on_target_monitor_changed:', target_monitor
+        print('on_target_monitor_changed:', target_monitor)
         SteamSetLobbyData('LobbyIP', target_monitor[0])
         SteamSetLobbyData('LobbyPort', str(target_monitor[2]))
 

@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from aoslib.text import EDO_FONT, START_FONT, CHAT_FONT, DEFAULT_FONT_SIZE, BUTTON_FONT, ALDO_FONT, Label, brushed_font, list_font, CATEGORY_FONT, CATEGORY_FONT_SIZE, navigation_font, draw_text_with_alignment_and_size_validation, draw_text_lines, get_resized_font_and_formatted_text_to_fit_boundaries, option_font, settings_value_font, key_input_font, edit_font, draw_text_with_size_validation, small_aldo_ui_font, medium_aldo_ui_font, big_aldo_ui_font, medium_button_aldo_font, big_button_aldo_font, small_standard_ui_font, small_edo_ui_font, medium_edo_ui_font
 from aoslib.draw import draw_quad, draw_line, draw_frame, draw_quad_gradient
 from aoslib.common import collides, multiply_color, multiply_float_color, draw_image_resized
@@ -1435,7 +1437,7 @@ class ScrollBar(HandlerBase):
                 if length_of_bevels < self.bar_full_length:
                     self.bar_current_length = length_of_bevels
                 else:
-                    print "Scrollbars too short to contain the bevel-end images of the bar won't look good. length = ", self.length, 'bar_full_length = ', self.bar_full_length
+                    print("Scrollbars too short to contain the bevel-end images of the bar won't look good. length = ", self.length, 'bar_full_length = ', self.bar_full_length)
         length_diff = self.bar_full_length - self.bar_current_length
         if self.high_coord_for_low_pos:
             self.bar_coord_at_max = self.origin_coord + self.button_size + self.button_bar_gap - 1

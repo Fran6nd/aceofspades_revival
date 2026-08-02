@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from pyglet import gl
 from shared.common import blend_color
 from aoslib.images import global_images
@@ -177,11 +179,11 @@ def draw_player_list(team, x, y, width, height, score_x, extra_players=[]):
             except IndexError:
                 glPopMatrix()
                 if player.get_class():
-                    print 'score icon not found (IndexError) player class id:', player.get_class().id
+                    print('score icon not found (IndexError) player class id:', player.get_class().id)
             except KeyError:
                 glPopMatrix()
                 if player.get_class():
-                    print 'score icon not found (KeyError) player class id:', player.get_class().id
+                    print('score icon not found (KeyError) player class id:', player.get_class().id)
 
             if SteamGetCurrentLobby() and name == SteamGetFriendPersonaName(SteamGetLobbyOwner()):
                 glPushMatrix()

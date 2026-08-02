@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from pyglet import gl
 from aoslib.scenes import MenuScene, ElementScene
 from aoslib.text import Label, small_standard_ui_font, START_FONT, START_FONT_SIZE, medium_edo_ui_font, title_font, mode_name_font, START_FONT, ALDO_FONT, EDO_FONT
@@ -101,7 +103,7 @@ class LoadingMenu(MenuScene):
         if mapimage_name is not '':
             self.current_load_map_image = load_ui(self.current_load_map_image, loading + mapimages + [mapimage_name], scale=global_images.global_scale, center=True, filtered=False)
             if not self.current_load_map_image:
-                print "Couldn't load map image"
+                print("Couldn't load map image")
             else:
                 self.current_load_infographic_image.width = 650
                 self.current_load_infographic_image.height = 305
@@ -416,7 +418,7 @@ class LoadingMenu(MenuScene):
             if self.no_progress_timeout <= 0:
                 self.on_navigation(is_back=True)
                 self.manager.set_big_text_message(ERROR_TIMEOUT)
-                print 'Failed to complete map load'
+                print('Failed to complete map load')
         else:
             self.last_percentage = percentage
             self.no_progress_timeout = LOADING_MENU_NO_PROGRESS_TIMEOUT
@@ -610,7 +612,7 @@ class LoadingMenu(MenuScene):
         elif packet.id == UGCMapInfo.id:
             if packet.png_data is not None:
                 self.create_ugc_preview_image(packet.png_data)
-                print 'UGC map preview receieved'
+                print('UGC map preview receieved')
         elif packet.id == MapDataValidation.id:
             self.status_text = strings.LOADING_MAP.format(self.map_name)
         elif packet.id == MapDataStart.id:

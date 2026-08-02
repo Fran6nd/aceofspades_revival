@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from constants_gamemode import *
 from constants_shop import *
 SPADES_GAME_APP_ID = 480 #224540
@@ -13,7 +15,7 @@ def A2():
     constants_file = 'constants.txt'
     import os
     if os.path.exists(constants_file):
-        print 'Loading overrides from', constants_file
+        print('Loading overrides from', constants_file)
         f = open(constants_file)
         for line in f:
             try:
@@ -24,7 +26,7 @@ def A2():
                 try:
                     existing_value = globals()[attribute_to_override]
                 except KeyError:
-                    print 'Constant', attribute_to_override, 'does not exist'
+                    print('Constant', attribute_to_override, 'does not exist')
 
                 if isinstance(existing_value, bool):
                     globals()[attribute_to_override] = override_value in ('True', 'true',
@@ -39,16 +41,16 @@ def A2():
                     override_value = override_value.replace("'", '"')
                     override_value = override_value.replace('+', '')
                     globals()[attribute_to_override] = json.loads(override_value)
-                print 'Override applied: %s = %s (default %s)' % (attribute_to_override, override_value, str(existing_value))
+                print('Override applied: %s = %s (default %s)' % (attribute_to_override, override_value, str(existing_value)))
             except:
                 if len(line) > 2:
-                    print 'Skipped line:', line
+                    print('Skipped line:', line)
 
 def parse_constant_overrides():
     constants_file = 'constants.txt'
     import os
     if os.path.exists(constants_file):
-        print 'Loading overrides from', constants_file
+        print('Loading overrides from', constants_file)
         f = open(constants_file)
         for line in f:
             try:
@@ -59,7 +61,7 @@ def parse_constant_overrides():
                 try:
                     existing_value = globals()[attribute_to_override]
                 except KeyError:
-                    print 'Constant', attribute_to_override, 'does not exist'
+                    print('Constant', attribute_to_override, 'does not exist')
 
                 if isinstance(existing_value, bool):
                     globals()[attribute_to_override] = override_value in ('True', 'true',
@@ -74,10 +76,10 @@ def parse_constant_overrides():
                     override_value = override_value.replace("'", '"')
                     override_value = override_value.replace('+', '')
                     globals()[attribute_to_override] = json.loads(override_value)
-                print 'Override applied: %s = %s (default %s)' % (attribute_to_override, override_value, str(existing_value))
+                print('Override applied: %s = %s (default %s)' % (attribute_to_override, override_value, str(existing_value)))
             except:
                 if len(line) > 2:
-                    print 'Skipped line:', line
+                    print('Skipped line:', line)
 
 MASTER_VERSION = 32
 A3 = MASTER_VERSION
@@ -4303,9 +4305,9 @@ for ugc_zone_key, ugc_zone_size in UGC_ZONE_SIZES.iteritems():
     A2025 = A2020 + (A2021 - A2020 & ~1)
     A2026 = A2022 + (A2023 - A2022 & ~1)
     if A2024 != A2019 or A2025 != A2021 or A2026 != A2023:
-        print 'zone size', ugc_zone_size, 'adjusted to be of even dimensions',
+        print('zone size', ugc_zone_size, 'adjusted to be of even dimensions',)
         UGC_ZONE_SIZES[ugc_zone_key] = (A2018, A2024, A2020, A2025, A2022, A2026)
-        print UGC_ZONE_SIZES[ugc_zone_key]
+        print(UGC_ZONE_SIZES[ugc_zone_key])
 
 UGC_ENTITY_TEAMS = {
      UGC_ITEM_GREEN_SPAWN_ZONE_SMALL: TEAM2, 
