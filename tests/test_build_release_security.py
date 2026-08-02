@@ -88,6 +88,58 @@ def test_restore_clean_bootloader_rejects_unpinned_bytes(monkeypatch, tmp_path):
         builder.restore_clean_windowed_bootloader(runtime)
 
 
+def fake_download(url, destination):
+    """Stand in for download_file, which creates the parent directory itself."""
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_bytes(b"payload")
+
+
+def test_every_toolchain_component_pins_a_sha256():
+    unpinned = [
+        component["name"]
+        for component in builder.TOOLCHAIN_COMPONENTS
+        if not component.get("sha256")
+    ]
+    assert unpinned == []
+
+
+def test_toolchain_component_without_sha256_is_rejected(monkeypatch, tmp_path):
+    component = {
+        "name": "unpinned-1.0",
+        "archive": "unpinned-1.0.tar.gz",
+        "url": "https://example.invalid/unpinned-1.0.tar.gz",
+    }
+    monkeypatch.setattr(builder, "TOOLCHAIN_VENDOR", tmp_path / "vendor")
+    monkeypatch.setattr(builder, "TOOLCHAIN_DOWNLOADS", tmp_path / "downloads")
+    monkeypatch.setattr(builder, "download_file", fake_download)
+
+    with pytest.raises(RuntimeError, match="no pinned sha256"):
+        builder.ensure_toolchain_component(component)
+
+
+def test_toolchain_component_with_wrong_sha256_is_rejected(monkeypatch, tmp_path):
+    component = {
+        "name": "tampered-1.0",
+        "archive": "tampered-1.0.tar.gz",
+        "url": "https://example.invalid/tampered-1.0.tar.gz",
+        "sha256": "0" * 64,
+    }
+    monkeypatch.setattr(builder, "TOOLCHAIN_VENDOR", tmp_path / "vendor")
+    monkeypatch.setattr(builder, "TOOLCHAIN_DOWNLOADS", tmp_path / "downloads")
+    monkeypatch.setattr(builder, "download_file", fake_download)
+
+    with pytest.raises(RuntimeError, match="failed SHA-256 verification"):
+        builder.ensure_toolchain_component(component)
+    # A rejected archive must not be left behind, or the early-return in
+    # download_file would treat the tampered copy as already fetched.
+    assert not (tmp_path / "downloads" / "tampered-1.0.tar.gz").exists()
+
+
+def test_release_spec_disables_upx_compression():
+    assert "upx=True" not in builder.SPEC_TEMPLATE
+    assert builder.SPEC_TEMPLATE.count("upx=False") == 3
+
+
 def test_version_argument_must_match_source_marker(monkeypatch, tmp_path):
     marker = tmp_path / "VERSION"
     marker.write_text("0.1.3\n", encoding="ascii")

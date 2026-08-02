@@ -57,26 +57,31 @@ TOOLCHAIN_COMPONENTS = [
         "name": "altgraph-0.17",
         "archive": "altgraph-0.17.tar.gz",
         "url": "https://files.pythonhosted.org/packages/source/a/altgraph/altgraph-0.17.tar.gz",
+        "sha256": "1f05a47122542f97028caf78775a095fbe6a2699b5089de8477eb583167d69aa",
     },
     {
         "name": "pywin32-ctypes-0.2.0",
         "archive": "pywin32-ctypes-0.2.0.tar.gz",
         "url": "https://files.pythonhosted.org/packages/source/p/pywin32-ctypes/pywin32-ctypes-0.2.0.tar.gz",
+        "sha256": "24ffc3b341d457d48e8922352130cf2644024a4ff09762a2261fd34c36ee5942",
     },
     {
         "name": "pefile-2017.11.5",
         "archive": "pefile-2017.11.5.tar.gz",
         "url": "https://files.pythonhosted.org/packages/source/p/pefile/pefile-2017.11.5.tar.gz",
+        "sha256": "675c35ee0e1677db9e80d2f48d8a7ff2cf38e6207e8cd5e2a2c6d126db025854",
     },
     {
         "name": "dis3-0.1.2",
         "archive": "dis3-0.1.2.tar.gz",
         "url": "https://files.pythonhosted.org/packages/source/d/dis3/dis3-0.1.2.tar.gz",
+        "sha256": "b98e5a9e3d8df54396219c0093fed1454416cec2b74ec15dc63e6a72b3bab94a",
     },
     {
         "name": "future-0.18.2",
         "archive": "future-0.18.2.tar.gz",
         "url": "https://files.pythonhosted.org/packages/source/f/future/future-0.18.2.tar.gz",
+        "sha256": "b1bead90b70cf6ec3f0710ae53a525360fa360d306a86583adc6bf83a4db537d",
     },
 ]
 
@@ -426,6 +431,20 @@ class WorkingSet(object):
 working_set = WorkingSet()
 '''
 
+# UPX compression is disabled throughout this spec, deliberately:
+#
+# - It works against the same goal as restoring the pristine bootloader and
+#   loading the icon externally. UPX-packed binaries are a far stronger
+#   reputation-based antivirus trigger than the PE resource rewriting that
+#   setup already avoids.
+# - It is partly wasted anyway: aos.exe is overwritten after packaging with the
+#   SHA-256-pinned bootloader, so compressing that executable is discarded.
+# - upx=True is a request, not a requirement - PyInstaller silently skips it
+#   when upx is not on PATH. That made build output depend on whether the
+#   machine happened to have UPX installed, so local and automated builds
+#   produced different bytes and different checksums for the same commit.
+#
+# The artifacts are zip and 7z compressed for distribution regardless.
 SPEC_TEMPLATE = '''# -*- mode: python ; coding: utf-8 -*-
 
 block_cipher = None
@@ -453,7 +472,7 @@ release_exe = EXE(pyz,
                   debug=False,
                   bootloader_ignore_signals=False,
                   strip=False,
-                  upx=True,
+                  upx=False,
                   console=False,
                   icon=None,
                   pkgname='aos.pkg',
@@ -466,7 +485,7 @@ debug_exe = EXE(pyz,
                 debug=True,
                 bootloader_ignore_signals=False,
                 strip=False,
-                upx=True,
+                upx=False,
                 console=True,
                 icon=None,
                 pkgname='aos.pkg',
@@ -477,7 +496,7 @@ coll = COLLECT(release_exe,
                a.zipfiles,
                a.datas,
                strip=False,
-               upx=True,
+               upx=False,
                upx_exclude=[],
                name='aos')
 '''
@@ -529,11 +548,21 @@ def ensure_toolchain_component(component: dict[str, str]) -> None:
         return
     archive_path = TOOLCHAIN_DOWNLOADS / component['archive']
     download_file(component['url'], archive_path)
+    # Every component must be pinned. Treating a missing hash as "skip the
+    # check" is how five of these archives silently went unverified; make the
+    # omission an error so a newly added component cannot repeat it.
     expected_sha256 = component.get('sha256')
-    if expected_sha256 and compute_sha256(archive_path) != expected_sha256:
+    if not expected_sha256:
+        raise RuntimeError(
+            f"Toolchain component {component['name']} has no pinned sha256"
+        )
+    actual_sha256 = compute_sha256(archive_path)
+    if actual_sha256 != expected_sha256:
         archive_path.unlink(missing_ok=True)
         raise RuntimeError(
-            f"Toolchain archive failed SHA-256 verification: {component['archive']}"
+            f"Toolchain archive failed SHA-256 verification: {component['archive']}\n"
+            f"  expected {expected_sha256}\n"
+            f"  actual   {actual_sha256}"
         )
     extract_archive(archive_path, TOOLCHAIN_VENDOR)
 

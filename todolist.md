@@ -31,11 +31,13 @@ Legend: `[ ]` pending · `[x]` done · `[~]` in progress · `[!]` blocked
 - [x] Add the cross-platform test workflow (Linux, Windows, macOS)
 - [x] Structure the build workflow as a platform matrix so macOS and Linux can
       be enabled later without a rewrite
-- [ ] Verify the workflows on a real push and fix what breaks
-- [ ] Decide whether to pin UPX, which currently makes CI and local artifact
-      checksums differ
-- [ ] Add integrity hashes for the 5 toolchain archives fetched without
-      verification
+- [x] Pin integrity hashes for the 5 toolchain archives that were fetched
+      without verification, and make a missing hash a hard error
+- [x] Disable UPX compression, which made build output depend on whether the
+      machine had UPX installed and worked against the existing effort to
+      avoid antivirus false positives
+- [x] Cover both of the above with tests
+- [~] Verify the workflows on a real run and fix what breaks
 
 ### 0.3 Windows oracle harness
 - [ ] CI job that provisions 32-bit Python 2.7 purely for module inspection
