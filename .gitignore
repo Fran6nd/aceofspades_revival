@@ -34,6 +34,9 @@ python/
 # Local planning document - working notes, not part of the project history
 PORT_PLAN.md
 
+# Local editor/assistant tooling configuration, not project code
+.claude/
+
 # Port working directories
 port/oracle/traces/
 port/recovered/**/*.raw
