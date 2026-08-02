@@ -469,7 +469,7 @@ ZONE_ICON_TERRITORY_H: int  # 14
 ZONE_ICON_TERRITORY_I: int  # 15
 ZONE_ICON_TERRITORY_J: int  # 16
 ZONE_ICON_VIP: int  # 5
-gl: _ModuleProxy  # <pyglet._ModuleProxy object at 0x03551210>
+gl: _ModuleProxy  # <pyglet._ModuleProxy object at 0x03CA1210>
 json: module  # <module 'json' from 'C:\Python27-x86\lib\json\__init__.pyc'>
 os: module  # <module 'os' from 'C:\Python27-x86\lib\os.pyc'>
 packets: module  # <module 'shared.packet' from 'D:\a\aceofspades_revival\aceofspades_revival\shared\packet.pyd'>
