@@ -18,6 +18,7 @@ Legend: `[ ]` pending · `[x]` done · `[~]` in progress · `[!]` blocked
 ## Step 0 — Infrastructure
 
 ### 0.1 Planning and tracking
+- [x] Start `BUGS.md` and fix defects on sight rather than accumulating them
 - [x] Reconnaissance of all 24 native modules (toolchain, sources, classification)
 - [x] Write the port plan working document
 - [x] Create this task list
@@ -40,11 +41,36 @@ Legend: `[ ]` pending · `[x]` done · `[~]` in progress · `[!]` blocked
 - [~] Verify the workflows on a real run and fix what breaks
 
 ### 0.3 Windows oracle harness
-- [ ] CI job that provisions 32-bit Python 2.7 purely for module inspection
-- [ ] Confirm every native module imports cleanly in that job
-- [ ] Establish how results are published as artifacts and reviewed natively
-- [ ] Assess whether rendering modules can be exercised on a runner with no GPU
-      or display, and record the fallback if not
+
+Investigation findings:
+
+- `import aoslib` runs `import aoslib.font` and `aoslib.graphicsManager`, and
+  `import shared` runs `import shared.bytes, shared.packet`. No native module
+  can be imported through its package without those side effects, so the
+  harness must also try loading each `.pyd` in isolation.
+- `graphicsManager` is inert at import time. `font` is a native module and is
+  the only hazard in the `aoslib` package init.
+- 43 distinct `aoslib.*` / `shared.*` names appear in the binaries. Exactly one,
+  `shared.playerInteractions`, does not exist in the repo — referenced by
+  `explosionDamageManager`.
+- Six modules reference pyglet (`character`, `gamemanager`, `hud`, `gameScene`,
+  `ugc_data`, `vxl`) and `gamemanager` also references Twisted, so both must be
+  importable before those are attempted.
+- Name references in a binary are not proof of an import at module-init time;
+  Cython pools all string constants. The real import behaviour has to be
+  measured on the runner rather than inferred here.
+
+Tasks:
+
+- [x] Map inter-module references and identify dependency-ordered leaves
+- [x] Determine what the package `__init__` files do on import
+- [x] Write the introspection harness (Python 2.7 compatible)
+- [x] Add the CI job that provisions 32-bit Python 2.7 for inspection only
+- [ ] Record which modules import cleanly and which fail, with tracebacks
+- [ ] Determine whether `shared.playerInteractions` is a live dependency or a
+      dead reference
+- [ ] Assess whether rendering modules can be exercised with no GPU or display,
+      and record the fallback if not
 
 ### 0.4 Module shim loader
 - [ ] Import hook that routes each native module to original or replacement

@@ -135,6 +135,87 @@ def test_toolchain_component_with_wrong_sha256_is_rejected(monkeypatch, tmp_path
     assert not (tmp_path / "downloads" / "tampered-1.0.tar.gz").exists()
 
 
+def test_build_rejects_a_64_bit_interpreter(monkeypatch, tmp_path):
+    calls = []
+
+    class Probe:
+        stdout = "64\n"
+
+    def fake_run(command, **kwargs):
+        calls.append(command)
+        return Probe()
+
+    monkeypatch.setattr(builder, "PY2_PYTHON", tmp_path / "python.exe")
+    monkeypatch.setattr(builder.subprocess, "run", fake_run)
+
+    with pytest.raises(RuntimeError, match="32-bit"):
+        builder.assert_build_interpreter_is_32bit()
+    assert calls, "the interpreter should actually be probed"
+
+
+def test_build_accepts_a_32_bit_interpreter(monkeypatch, tmp_path):
+    class Probe:
+        stdout = "32\n"
+
+    monkeypatch.setattr(builder, "PY2_PYTHON", tmp_path / "python.exe")
+    monkeypatch.setattr(builder.subprocess, "run", lambda command, **kwargs: Probe())
+
+    builder.assert_build_interpreter_is_32bit()
+
+
+def test_copy_assets_names_a_missing_directory(monkeypatch, tmp_path):
+    monkeypatch.setattr(builder, "ROOT", tmp_path)
+    monkeypatch.setattr(builder, "ASSET_DIRECTORIES", ["png"])
+
+    with pytest.raises(RuntimeError, match="asset directory is missing"):
+        builder.copy_assets(tmp_path / "stage")
+
+
+def test_download_retries_then_succeeds(monkeypatch, tmp_path):
+    attempts = []
+
+    class Response:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def read(self, *args):
+            return b""
+
+    def flaky_urlopen(url, timeout=None):
+        attempts.append(timeout)
+        if len(attempts) < 2:
+            raise OSError("connection reset")
+        return Response()
+
+    monkeypatch.setattr(builder.urllib.request, "urlopen", flaky_urlopen)
+    monkeypatch.setattr(builder.shutil, "copyfileobj", lambda source, handle: handle.write(b"ok"))
+
+    destination = tmp_path / "archive.tar.gz"
+    builder.download_file("https://example.invalid/archive.tar.gz", destination)
+
+    assert destination.read_bytes() == b"ok"
+    assert len(attempts) == 2
+    assert all(timeout is not None for timeout in attempts), "every request must set a timeout"
+    assert not (tmp_path / "archive.tar.gz.partial").exists()
+
+
+def test_download_gives_up_and_leaves_no_partial_file(monkeypatch, tmp_path):
+    def always_fails(url, timeout=None):
+        raise OSError("connection reset")
+
+    monkeypatch.setattr(builder.urllib.request, "urlopen", always_fails)
+
+    destination = tmp_path / "archive.tar.gz"
+    with pytest.raises(RuntimeError, match="after 3 attempts"):
+        builder.download_file("https://example.invalid/archive.tar.gz", destination)
+
+    assert not destination.exists()
+    assert not (tmp_path / "archive.tar.gz.partial").exists()
+
+
 def test_release_spec_disables_upx_compression():
     assert "upx=True" not in builder.SPEC_TEMPLATE
     assert builder.SPEC_TEMPLATE.count("upx=False") == 3

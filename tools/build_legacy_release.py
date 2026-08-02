@@ -524,12 +524,33 @@ def ensure_directory(path: Path) -> None:
     path.mkdir(parents=True, exist_ok=True)
 
 
+DOWNLOAD_TIMEOUT_SECONDS = 60
+DOWNLOAD_ATTEMPTS = 3
+
+
 def download_file(url: str, destination: Path) -> None:
     ensure_directory(destination.parent)
     if destination.exists():
         return
-    with urllib.request.urlopen(url) as response, destination.open('wb') as handle:
-        shutil.copyfileobj(response, handle)
+    # Without a timeout a stalled connection hangs the build indefinitely
+    # instead of failing, and one transient error should not cost the whole
+    # toolchain bootstrap. Write to a temporary file so an interrupted download
+    # cannot be mistaken for a complete one by the early return above.
+    partial = destination.with_suffix(destination.suffix + '.partial')
+    last_error: Exception | None = None
+    for attempt in range(1, DOWNLOAD_ATTEMPTS + 1):
+        try:
+            with urllib.request.urlopen(url, timeout=DOWNLOAD_TIMEOUT_SECONDS) as response:
+                with partial.open('wb') as handle:
+                    shutil.copyfileobj(response, handle)
+            partial.replace(destination)
+            return
+        except Exception as error:  # noqa: BLE001 - retried and re-raised below
+            last_error = error
+            partial.unlink(missing_ok=True)
+            if attempt < DOWNLOAD_ATTEMPTS:
+                print(f'Download failed ({error}); retrying {attempt + 1}/{DOWNLOAD_ATTEMPTS}: {url}')
+    raise RuntimeError(f'Failed to download {url} after {DOWNLOAD_ATTEMPTS} attempts') from last_error
 
 
 def extract_archive(archive_path: Path, destination: Path) -> None:
@@ -539,7 +560,13 @@ def extract_archive(archive_path: Path, destination: Path) -> None:
             archive.extractall(destination)
     else:
         with tarfile.open(archive_path, 'r:*') as archive:
-            archive.extractall(destination)
+            # Python 3.14 makes 'data' the default and 3.12/3.13 warn without
+            # it. Requesting it explicitly keeps behaviour identical across all
+            # of them, and rejects member paths that escape the destination.
+            if hasattr(tarfile, 'data_filter'):
+                archive.extractall(destination, filter='data')
+            else:
+                archive.extractall(destination)
 
 
 def ensure_toolchain_component(component: dict[str, str]) -> None:
@@ -713,9 +740,33 @@ def pyinstaller_env() -> dict[str, str]:
     return env
 
 
+def assert_build_interpreter_is_32bit() -> None:
+    """Refuse to build with a 64-bit Python 2.
+
+    The shipped game extensions are all 32-bit. PyInstaller drops binaries whose
+    architecture does not match the interpreter running it, so a 64-bit Python 2
+    silently produces a release with every .pyd and .dll missing, and still
+    exits successfully. Failing here turns a broken artifact into an error.
+    """
+    probe = subprocess.run(
+        [str(PY2_PYTHON), '-c', 'import struct; print(struct.calcsize("P") * 8)'],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    bits = probe.stdout.strip()
+    if bits != '32':
+        raise RuntimeError(
+            f'Build interpreter {PY2_PYTHON} is {bits}-bit, but the game '
+            'extensions are 32-bit. A 64-bit interpreter silently drops every '
+            'native module from the bundle. Use a 32-bit Python 2.7.'
+        )
+
+
 def build_legacy_runtime() -> Path:
     if not PY2_PYTHON.exists():
         raise RuntimeError(f'Bundled Python 2 runtime not found at {PY2_PYTHON}')
+    assert_build_interpreter_is_32bit()
 
     dist_root = LEGACY_BUILD_ROOT / 'dist'
     work_root = LEGACY_BUILD_ROOT / 'work'
@@ -811,6 +862,15 @@ def copy_assets(stage_dir: Path) -> None:
     for directory_name in ASSET_DIRECTORIES:
         source = ROOT / directory_name
         destination = stage_dir / directory_name
+        # Name the missing directory rather than letting copytree raise from
+        # inside itself. All of these are tracked, so an absent one usually
+        # means a sparse or partial checkout, which is easy to reach for on a
+        # repository this size and hard to diagnose from the raw error.
+        if not source.is_dir():
+            raise RuntimeError(
+                f'Required asset directory is missing: {source}. '
+                'A sparse or partial checkout cannot produce a complete release.'
+            )
         if destination.exists():
             shutil.rmtree(destination)
         shutil.copytree(source, destination)

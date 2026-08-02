@@ -1,0 +1,107 @@
+name: Oracle
+
+# Captures the public API of the Windows-only native modules.
+#
+# The shipped .pyd files are 32-bit Python 2.7 extensions, so real Windows is
+# the only place they can be loaded. This job loads them there and publishes
+# the result as an artifact. The port work then happens natively on macOS and
+# Linux against that artifact, with no Windows in the loop.
+#
+# It never fails on a module that cannot be imported: which modules refuse to
+# load on a runner with no GPU and no display is exactly the thing this job
+# exists to find out.
+
+on:
+  push:
+  workflow_dispatch:
+
+env:
+  PY2_VERSION: '2.7.18'
+  PY2_DIR: 'C:\Python27-x86'
+
+jobs:
+  introspect:
+    name: Introspect native modules
+    runs-on: windows-2022
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Cache Python 2.7 installer
+        id: cache-py2-installer
+        uses: actions/cache@v4
+        with:
+          path: python2-installer
+          key: py2-installer-${{ env.PY2_VERSION }}-x86
+
+      - name: Download Python 2.7 (32-bit)
+        if: steps.cache-py2-installer.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path python2-installer | Out-Null
+          $url = "https://www.python.org/ftp/python/$env:PY2_VERSION/python-$env:PY2_VERSION.msi"
+          Invoke-WebRequest -Uri $url -OutFile python2-installer\python2.msi
+
+      - name: Install Python 2.7 (32-bit)
+        shell: pwsh
+        run: |
+          $msi = (Resolve-Path python2-installer\python2.msi).Path
+          Start-Process msiexec.exe -Wait -ArgumentList @(
+            '/i', "`"$msi`"", '/qn', "TARGETDIR=$env:PY2_DIR", 'ALLUSERS=1'
+          )
+          $bits = & "$env:PY2_DIR\python.exe" -c "import struct; print(struct.calcsize('P') * 8)"
+          if ($bits.Trim() -ne '32') {
+            throw "Expected a 32-bit Python 2.7 runtime, got $bits-bit."
+          }
+
+      - name: Install pip for Python 2.7
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri https://bootstrap.pypa.io/pip/2.7/get-pip.py -OutFile get-pip.py
+          & "$env:PY2_DIR\python.exe" get-pip.py
+          Remove-Item get-pip.py
+
+      # Several modules reference pyglet, and gamemanager also references
+      # Twisted. Both need to be importable or those modules will fail for a
+      # reason that has nothing to do with the runner being headless.
+      - name: Install client runtime dependencies
+        shell: pwsh
+        env:
+          PURE_PYTHON: '1'
+        run: |
+          & "$env:PY2_DIR\python.exe" -m pip install -r requirements.txt
+          $target = "$env:PY2_DIR\Lib\site-packages\pyglet"
+          if (Test-Path $target) { Remove-Item -Recurse -Force $target }
+          Copy-Item -Recurse -Force vendor\pyglet $target
+
+      - name: Introspect native modules
+        shell: pwsh
+        run: |
+          & "$env:PY2_DIR\python.exe" tools\oracle\introspect_modules.py build\oracle\native_api.json
+
+      - name: Summarise results
+        if: always()
+        shell: pwsh
+        run: |
+          $report = Get-Content build\oracle\native_api.json -Raw | ConvertFrom-Json
+          "## Native module introspection" | Out-File -Append $env:GITHUB_STEP_SUMMARY
+          "" | Out-File -Append $env:GITHUB_STEP_SUMMARY
+          "| module | import | members |" | Out-File -Append $env:GITHUB_STEP_SUMMARY
+          "| --- | --- | --- |" | Out-File -Append $env:GITHUB_STEP_SUMMARY
+          foreach ($entry in $report.modules) {
+            $count = 0
+            if ($entry.api) { $count = ($entry.api.members | Get-Member -MemberType NoteProperty).Count }
+            "| $($entry.module) | $($entry.import) | $count |" | Out-File -Append $env:GITHUB_STEP_SUMMARY
+          }
+
+      - name: Upload API report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-api-report
+          path: build/oracle/native_api.json
+          if-no-files-found: error
+          retention-days: 90
