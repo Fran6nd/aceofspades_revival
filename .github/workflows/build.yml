@@ -8,10 +8,11 @@ name: Build
 # are declared but disabled, and are switched on as the native module port
 # lands. See todolist.md.
 
+# Runs on every push to every branch, and on tags. Branch builds are what catch
+# packaging regressions before they reach master, which matters here because the
+# build cannot be reproduced locally without a 32-bit Python 2.7 to hand.
 on:
   push:
-    branches: [master]
-    tags: ['v*']
   pull_request:
     branches: [master]
   workflow_dispatch:
