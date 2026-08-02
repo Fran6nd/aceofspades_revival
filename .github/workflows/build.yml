@@ -181,11 +181,27 @@ jobs:
         run: |
           python tools/build_release.py --version "${{ steps.version.outputs.value }}" --skip-server
 
-      - name: Upload release artifacts
+      # The staged tree, not the zips: this is the artifact to download and run
+      # for testing. GitHub archives artifacts on download anyway, so uploading
+      # the already-zipped release here would compress everything twice and
+      # leave a nested archive to unpack before anything is runnable.
+      - name: Upload runnable client
         if: matrix.platform == 'windows'
         uses: actions/upload-artifact@v4
         with:
-          name: AoSRevival-${{ steps.version.outputs.value }}-${{ matrix.platform }}
+          name: client-${{ steps.version.outputs.value }}-${{ matrix.platform }}
+          path: build/releases/AoSRevival-${{ steps.version.outputs.value }}-win32/
+          if-no-files-found: error
+          retention-days: 14
+
+      # The distributable archives and their checksums. Already compressed, so
+      # store them rather than deflating them a second time.
+      - name: Upload release archives
+        if: matrix.platform == 'windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-archives-${{ steps.version.outputs.value }}-${{ matrix.platform }}
           path: build/artifacts/
+          compression-level: 0
           if-no-files-found: error
           retention-days: 30

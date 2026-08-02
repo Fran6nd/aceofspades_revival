@@ -50,16 +50,39 @@ jobs:
         run: python -c "import tkinter; print('tkinter', tkinter.TkVersion)"
 
       - name: Run tests
+        id: pytest-windows
         if: runner.os == 'Windows'
-        run: python -m pytest tests/ -v
+        continue-on-error: true
+        run: python -m pytest tests/ -v --junitxml=test-results.xml
 
       # Two tests assert Windows path semantics (a drive-letter path resolved
       # through os.path.abspath) and cannot hold where os.path is posixpath.
       # They are deselected rather than skipped so their absence is visible
       # here and they still run on the Windows leg above.
       - name: Run tests
+        id: pytest-posix
         if: runner.os != 'Windows'
+        continue-on-error: true
         run: |
-          python -m pytest tests/ -v \
+          python -m pytest tests/ -v --junitxml=test-results.xml \
             --deselect tests/test_unicode_appdata_paths.py::test_frozen_updater_uses_wide_executable_path \
             --deselect tests/test_unicode_appdata_paths.py::test_frozen_launcher_uses_wide_executable_path
+
+      # Run logs need an authenticated request, but annotations do not. Turning
+      # failures into annotations keeps a red build diagnosable from the API.
+      - name: Annotate failures
+        if: always()
+        run: python tools/ci/annotate_junit.py test-results.xml
+
+      - name: Publish test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.os }}
+          path: test-results.xml
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Fail if tests failed
+        if: steps.pytest-windows.outcome == 'failure' || steps.pytest-posix.outcome == 'failure'
+        run: exit 1
