@@ -84,11 +84,11 @@ Tasks:
 
 ## Step 1 — API extraction
 
-- [ ] Harness that imports every native module and walks its object graph
-- [ ] Capture classes, bases, methods, and module constants
-- [ ] Capture signatures via `binding=True` introspection
+- [x] Harness that imports every native module and walks its object graph
+- [x] Capture classes, bases, methods, and module constants
+- [x] Capture signatures via `binding=True` introspection
 - [ ] Capture docstrings and the Cython `__test__` doctest table
-- [ ] Emit a typed API skeleton per module, committed as the reference
+- [x] Emit a typed API skeleton per module, committed as the reference
 - [ ] Probe for integrity checks that would reject replaced modules
 - [ ] Confirm whether `packet` contains more than protocol serialization
 
