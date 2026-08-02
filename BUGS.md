@@ -131,13 +131,29 @@ nowhere in the captured API of any module.
 It is a dead reference — a pooled Cython string constant left over from a build
 that once had the module — not a live import. No action needed.
 
-### 10. Two client modules cannot be parsed by Python 3 — OPEN
+### 10. Thirty client modules cannot be parsed by Python 3 — OPEN
 
-`aoslib/gui.py`, `aoslib/scenes/frontend/leaderboardListPanel.py`
+Originally recorded as two files, `aoslib/gui.py` and
+`aoslib/scenes/frontend/leaderboardListPanel.py`, because those are the two the
+test suite works around. A full audit of the tree
+(`tools/port/audit_python3.py`) shows the real number is **30 of 346**.
 
-Both are Python 2 source that raises `SyntaxError` under Python 3
-(`Missing parentheses in call to 'print'`). They block the Python 3 migration
-and are the reason for defect 11 below.
+The failures fall into exactly two mechanical classes:
+
+- **27 files** use Python 2 `print` statements.
+- **3 files** use Python 2 long literals (`4273777538L`) —
+  `aoslib/pyglet_win32_raw_mouse.py`, `aoslib/tools.py`, `model_crcs.py`.
+
+Nothing else: no `except X, e`, no backtick repr, no octal literals, no `exec`
+statement, no `<>`. For a Python 2 codebase this is unusually clean, and both
+classes convert mechanically.
+
+A further 54 files parse but contain idioms that misbehave at runtime rather
+than failing loudly — 57 uses of `xrange` across 31 files and 40 of
+`iteritems`/`iterkeys`/`itervalues` across 22 are the bulk. Those are the
+dangerous ones, because nothing flags them until the code runs.
+
+Run `python tools/port/audit_python3.py` for the current breakdown.
 
 ---
 
