@@ -253,8 +253,59 @@ def write_report(report, destination):
         json.dump(report, handle, indent=2, sort_keys=True)
 
 
+def probe_in_subprocess(name):
+    """Probe one module in a child process.
+
+    Some modules abort the interpreter instead of raising - `aoslib.draw` does
+    this on a runner with no GPU. That cannot be caught, so it has to be
+    contained: each module gets its own process, and a crash costs that module
+    rather than every module after it.
+    """
+    import subprocess
+    import tempfile
+
+    handle, temporary = tempfile.mkstemp(suffix='.json')
+    os.close(handle)
+    try:
+        command = [sys.executable, os.path.abspath(__file__), '--module', name, temporary]
+        child = subprocess.Popen(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            cwd=repo_root(),
+        )
+        output = child.communicate()[0]
+        if not isinstance(output, str):
+            output = output.decode('utf-8', 'replace')
+
+        if child.returncode == 0:
+            try:
+                with open(temporary) as report_handle:
+                    return json.load(report_handle)
+            except (ValueError, IOError):
+                pass
+
+        return {
+            'module': name,
+            'import': 'crashed',
+            'exit_code': child.returncode,
+            'output': output[-4000:],
+        }
+    finally:
+        if os.path.isfile(temporary):
+            os.unlink(temporary)
+
+
 def main():
     prepare_environment()
+
+    # Child mode: probe exactly one module and write it out. Kept in the same
+    # file so there is one harness to maintain, not two.
+    if len(sys.argv) > 2 and sys.argv[1] == '--module':
+        name = sys.argv[2]
+        destination = sys.argv[3] if len(sys.argv) > 3 else 'module.json'
+        write_report(probe(name), destination)
+        return 0
 
     destination = sys.argv[1] if len(sys.argv) > 1 else 'native_api.json'
     report = {
@@ -266,28 +317,23 @@ def main():
 
     for name in MODULES:
         print('probing %s' % name)
-        # Record the attempt before making it. A module that initialises a GL
-        # context can abort the process outright rather than raise, which no
-        # amount of exception handling would catch, so the report is flushed
-        # after every step and carries the name of whatever was in flight.
-        report['in_flight'] = name
-        write_report(report, destination)
-
-        entry = probe(name)
+        entry = probe_in_subprocess(name)
         report['modules'].append(entry)
-        report.pop('in_flight', None)
         write_report(report, destination)
-        print('  -> %s' % entry['import'])
+        print('  -> %s' % entry.get('import'))
 
     write_report(report, destination)
 
-    succeeded = [m for m in report['modules'] if m['import'] != 'failed']
+    imported = [m for m in report['modules'] if m.get('import') not in ('failed', 'crashed')]
+    crashed = [m for m in report['modules'] if m.get('import') == 'crashed']
     print('')
-    print('imported %d of %d modules' % (len(succeeded), len(MODULES)))
+    print('imported %d of %d modules' % (len(imported), len(MODULES)))
+    if crashed:
+        print('crashed: %s' % ', '.join(m['module'] for m in crashed))
     print('wrote %s' % destination)
 
-    # Always exit 0: a module that cannot be imported headlessly is a result to
-    # record, not a build failure. The report is the deliverable.
+    # Always exit 0. A module that cannot be loaded headlessly is a result to
+    # record, not a build failure - finding that out is the point of this job.
     return 0
 
 

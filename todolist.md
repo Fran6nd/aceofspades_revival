@@ -66,16 +66,19 @@ Tasks:
 - [x] Determine what the package `__init__` files do on import
 - [x] Write the introspection harness (Python 2.7 compatible)
 - [x] Add the CI job that provisions 32-bit Python 2.7 for inspection only
-- [ ] Record which modules import cleanly and which fail, with tracebacks
+- [x] Record which modules import cleanly and which fail, with tracebacks
+- [x] Isolate each probe in its own process so one crash does not end the run
 - [ ] Determine whether `shared.playerInteractions` is a live dependency or a
       dead reference
 - [ ] Assess whether rendering modules can be exercised with no GPU or display,
       and record the fallback if not
 
 ### 0.4 Module shim loader
-- [ ] Import hook that routes each native module to original or replacement
-- [ ] Per-module configuration switch
-- [ ] Verify the stock client is unaffected when all modules route to original
+- [x] Import hook that routes each native module to original or replacement
+- [x] Per-module configuration switch
+- [x] Verify the stock client is unaffected when all modules route to original
+- [ ] Handle package `__init__` side effects, which run before the shim is
+      consulted and fail off Windows
 
 ---
 

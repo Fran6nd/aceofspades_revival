@@ -65,11 +65,18 @@ def main() -> int:
         name = entry.get('module', '?')
         how = entry.get('import', '?')
         count = member_count(entry)
-        if how != 'failed':
+        if how not in ('failed', 'crashed'):
             imported += 1
         lines.append(f'| `{name}` | {how} | {count} |')
 
-        if how == 'failed':
+        if how == 'crashed':
+            tail = '\n'.join((entry.get('output') or '').strip().splitlines()[-6:])
+            print(
+                f'::warning title={escape(name)} crashed the interpreter::'
+                f'exit {entry.get("exit_code")}. It aborts rather than raising, so it '
+                f'cannot be loaded here.%0A{escape(tail)}'
+            )
+        elif how == 'failed':
             detail = entry.get('isolated_import_error') or entry.get('package_import_error') or ''
             tail = '\n'.join(detail.strip().splitlines()[-6:])
             print(f'::warning title={escape(name)} could not be imported::{escape(tail)}')
