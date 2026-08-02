@@ -8,9 +8,10 @@ name: Checks
 # Running them on macOS and Linux is the regression guard that keeps the
 # portable Python layer portable while the native module port proceeds.
 
+# Runs on every branch, not just master. The suite is fast and cheap, so there
+# is no reason to wait for a pull request to find out something broke.
 on:
   push:
-    branches: [master]
   pull_request:
     branches: [master]
   workflow_dispatch:
